@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  
+  <!-- Main Circle -->
+  <circle cx="256" cy="256" r="150" fill="#F7EFE5"/>
+  <circle cx="256" cy="256" r="140" fill="#9DB2BF" fill-opacity="0.05"/>
+  
+  <!-- Teacup Body -->
+  <path d="M196 236C196 216 212 200 232 200H280C300 200 316 216 316 236V300C316 320 300 336 280 336H232C212 336 196 320 196 300V236Z" fill="#9DB2BF"/>
+  
+  <!-- Teacup Inner -->
+  <path d="M206 236C206 221.6 217.6 210 232 210H280C294.4 210 306 221.6 306 236V300C306 314.4 294.4 326 280 326H232C217.6 326 206 314.4 206 300V236Z" fill="#F7EFE5"/>
+  
+  <!-- Tea -->
+  <path d="M206 260H306V300C306 314.4 294.4 326 280 326H232C217.6 326 206 314.4 206 300V260Z" fill="#E88C59" fill-opacity="0.7"/>
+  
+  <!-- Cup Handle -->
+  <path d="M316 240C316 240 346 240 346 270C346 300 316 300 316 300" stroke="#9DB2BF" stroke-width="12" stroke-linecap="round"/>
+  
+  <!-- Steam -->
+  <path d="M236 190C236 190 226 170 246 170C266 170 256 190 256 190" stroke="#9DB2BF" stroke-width="4" stroke-linecap="round"/>
+  <path d="M256 175C256 175 246 155 266 155C286 155 276 175 276 175" stroke="#9DB2BF" stroke-width="4" stroke-linecap="round"/>
+  <path d="M276 190C276 190 266 170 286 170C306 170 296 190 296 190" stroke="#9DB2BF" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Saucer -->
+  <ellipse cx="256" cy="336" rx="80" ry="16" fill="#9DB2BF"/>
+  <ellipse cx="256" cy="336" rx="70" ry="10" fill="#F7EFE5"/>
+  
+  <!-- Cozy Accent - Small circles -->
+  <circle cx="186" cy="236" r="10" fill="#E88C59" fill-opacity="0.5"/>
+  <circle cx="176" cy="276" r="14" fill="#C06B45" fill-opacity="0.4"/>
+  <circle cx="336" cy="236" r="12" fill="#C06B45" fill-opacity="0.3"/>
+  <circle cx="336" cy="286" r="8" fill="#E88C59" fill-opacity="0.4"/>
+</svg>
