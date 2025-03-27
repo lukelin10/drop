@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  
+  <!-- Abstract Speech Bubble - More geometric design -->
+  <path d="M360 256C360 180 316 136 256 136C196 136 152 180 152 256C152 332 196 376 256 376V426L316 376H320C344 376 360 346 360 256Z" fill="#9DB2BF" fill-opacity="0.8"/>
+  
+  <!-- Multiple Droplets forming pattern -->
+  <path d="M256 166C256 166 226 220 226 245C226 270 239 290 256 290C273 290 286 270 286 245C286 220 256 166 256 166Z" fill="#D2846D"/>
+  
+  <path d="M216 210C216 210 200 240 200 255C200 270 207 280 216 280C225 280 232 270 232 255C232 240 216 210 216 210Z" fill="#E88C59" fill-opacity="0.9"/>
+  
+  <path d="M296 210C296 210 280 240 280 255C280 270 287 280 296 280C305 280 312 270 312 255C312 240 296 210 296 210Z" fill="#E88C59" fill-opacity="0.9"/>
+  
+  <!-- Connecting Line -->
+  <path d="M234 260C234 260 256 275 278 260" stroke="#C06B45" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Reflection Spots -->
+  <circle cx="246" cy="230" r="8" fill="#F9F4EC" fill-opacity="0.7"/>
+  <circle cx="296" cy="230" r="6" fill="#F9F4EC" fill-opacity="0.7"/>
+  <circle cx="216" cy="230" r="6" fill="#F9F4EC" fill-opacity="0.7"/>
+</svg>

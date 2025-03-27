@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background - Soft gradient -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  <circle cx="256" cy="256" r="220" fill="#F9F4EC"/>
+  
+  <!-- Minimalist Speech Bubble - Very clean and simple -->
+  <path d="M345 256C345 188 306 145 256 145C206 145 167 188 167 256C167 324 206 367 256 367V410L300 367H310C330 367 345 332 345 256Z" fill="#9DB2BF" fill-opacity="0.7"/>
+  
+  <!-- Clean Single Droplet - Focused and minimal -->
+  <path d="M256 180C256 180 226 230 226 260C226 290 239 310 256 310C273 310 286 290 286 260C286 230 256 180 256 180Z" fill="#D2846D"/>
+  
+  <!-- Simple Inner Gradient -->
+  <path d="M256 200C256 200 236 235 236 260C236 285 244 300 256 300C268 300 276 285 276 260C276 235 256 200 256 200Z" fill="#E88C59"/>
+  
+  <!-- Single Reflection Spot - Very intentional -->
+  <circle cx="245" cy="235" r="10" fill="#F9F4EC" fill-opacity="0.8"/>
+  
+  <!-- Subtle Rings - Like ripples -->
+  <circle cx="256" cy="260" r="35" stroke="#C06B45" stroke-width="1.5" stroke-opacity="0.3" fill="none"/>
+  <circle cx="256" cy="260" r="45" stroke="#C06B45" stroke-width="1" stroke-opacity="0.2" fill="none"/>
+</svg>
