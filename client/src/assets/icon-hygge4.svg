@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  
+  <!-- Circular Frame -->
+  <circle cx="256" cy="256" r="140" stroke="#9DB2BF" stroke-width="16" fill="#F7EFE5"/>
+  
+  <!-- Journal -->
+  <rect x="176" y="206" width="100" height="140" rx="6" fill="#C06B45"/>
+  
+  <!-- Open Pages -->
+  <rect x="186" y="216" width="80" height="120" rx="3" fill="#F7EFE5"/>
+  
+  <!-- Journal Binding -->
+  <rect x="222" y="206" width="8" height="140" fill="#9DB2BF"/>
+  
+  <!-- Journal Lines - Left Page -->
+  <rect x="196" y="236" width="18" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="196" y="246" width="18" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="196" y="256" width="18" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="196" y="266" width="18" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="196" y="276" width="18" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="196" y="286" width="18" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="196" y="296" width="12" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  
+  <!-- Fireplace Fire -->
+  <path d="M320 220C320 200 300 190 290 186C300 198 306 210 300 230C294 250 280 260 270 266C280 273 290 286 290 296C290 310 275 325 255 330C275 332 295 326 310 310C325 294 330 270 320 250C310 230 315 220 320 210C320 190 310 186 320 220Z" fill="#E88C59" fill-opacity="0.7"/>
+  <path d="M290 230C290 215 305 205 315 200C305 210 300 220 305 235C310 250 320 260 330 265C320 270 310 280 310 290C310 300 320 310 335 315C320 315 305 310 295 300C285 290 280 275 285 260C290 245 285 235 280 230C280 210 295 205 290 230Z" fill="#D2846D" fill-opacity="0.7"/>
+  
+  <!-- Pen -->
+  <rect x="256" y="326" width="40" height="5" rx="2.5" transform="rotate(-30 256 326)" fill="#9DB2BF"/>
+  
+  <!-- Warmth Elements (Simple Shapes Indicating Coziness) -->
+  <circle cx="350" cy="280" r="10" fill="#E88C59" fill-opacity="0.5"/>
+  <circle cx="330" cy="310" r="8" fill="#D2846D" fill-opacity="0.5"/>
+  <circle cx="370" cy="310" r="6" fill="#E88C59" fill-opacity="0.5"/>
+</svg>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  
+  <!-- Open Journal as Background -->
+  <rect x="136" y="186" width="240" height="160" rx="8" fill="#9DB2BF"/>
+  <rect x="146" y="196" width="220" height="140" rx="4" fill="#F7EFE5"/>
+  
+  <!-- Journal Binding -->
+  <rect x="251" y="186" width="10" height="160" fill="#C06B45"/>
+  
+  <!-- Journal Lines - Left Page -->
+  <rect x="166" y="216" width="70" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="166" y="236" width="70" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="166" y="256" width="70" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="166" y="276" width="70" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  <rect x="166" y="296" width="50" height="2" rx="1" fill="#9DB2BF" fill-opacity="0.4"/>
+  
+  <!-- Fireplace Window on Right Page -->
+  <rect x="286" y="216" width="60" height="60" rx="4" fill="#9DB2BF" fill-opacity="0.2"/>
+  
+  <!-- Flames in Fireplace Window -->
+  <path d="M306 226C306 216 301 212 296 210C301 214 303 220 301 227C298 235 294 239 289 241C294 243 298 248 298 253C298 258 294 263 286 265C294 265 301 262 306 258C311 254 313 246 311 239C308 232 310 226 313 224C313 214 306 212 306 226Z" fill="#E88C59"/>
+  <path d="M324 230C324 222 330 217 335 215C330 219 327 225 330 232C332 240 337 244 342 246C337 248 332 253 332 258C332 263 337 268 344 270C337 270 330 267 324 263C319 259 317 251 319 244C322 236 320 230 317 228C317 218 324 216 324 230Z" fill="#D2846D"/>
+  
+  <!-- Cup of Tea -->
+  <circle cx="316" cy="296" r="15" fill="#9DB2BF" fill-opacity="0.8"/>
+  <circle cx="316" cy="296" r="12" fill="#F7EFE5"/>
+  <path d="M307 290H325V298C325 302.418 321.418 306 317 306H315C310.582 306 307 302.418 307 298V290Z" fill="#F7EFE5"/>
+  <line x1="307" y1="290" x2="325" y2="290" stroke="#E88C59" stroke-width="2"/>
+  
+  <!-- Pen on Left Page -->
+  <rect x="181" y="316" width="40" height="4" rx="2" fill="#C06B45"/>
+</svg>
