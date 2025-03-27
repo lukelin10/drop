@@ -1,13 +1,13 @@
-export type ThemeName = 'ocean' | 'forest' | 'sunset';
+export type ThemeName = 'cozy' | 'forest' | 'sunset';
 
 export const themes = {
-  ocean: {
-    primary: '#1E88E5',
-    secondary: '#64B5F6',
-    accent: '#0D47A1',
-    neutral: '#F5F7FA',
-    surface: '#FFFFFF',
-    text: '#263238'
+  cozy: {
+    primary: '#D27D52',   // Soft Terracotta - warm and inviting
+    secondary: '#556B2F', // Deep Olive - grounded and earthy
+    accent: '#F5EFE6',    // Warm Cream - soothing and comfortable
+    neutral: '#3B2E2A',   // Rich Chestnut - evokes the feeling of a rustic cabin
+    surface: '#F5EFE6',   // Using Warm Cream for better readability
+    text: '#2D2D2D'       // Charcoal Black - strong but subtle contrast
   },
   forest: {
     primary: '#43A047',

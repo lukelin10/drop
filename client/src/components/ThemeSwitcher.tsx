@@ -13,11 +13,11 @@ const ThemeSwitcher = () => {
     <div className="theme-switcher flex justify-center gap-6 mt-6">
       <div className="flex flex-col items-center">
         <div 
-          className={`theme-dot w-6 h-6 rounded-full cursor-pointer transition-transform hover:scale-110 ${activeTheme === 'ocean' ? 'ring-2 ring-white ring-offset-2' : ''}`}
-          style={{ backgroundColor: themes.ocean.primary }}
-          onClick={() => handleThemeChange('ocean')}
+          className={`theme-dot w-6 h-6 rounded-full cursor-pointer transition-transform hover:scale-110 ${activeTheme === 'cozy' ? 'ring-2 ring-white ring-offset-2' : ''}`}
+          style={{ backgroundColor: themes.cozy.primary }}
+          onClick={() => handleThemeChange('cozy')}
         />
-        <span className="text-xs mt-1">Ocean</span>
+        <span className="text-xs mt-1">Cozy</span>
       </div>
       <div className="flex flex-col items-center">
         <div 
