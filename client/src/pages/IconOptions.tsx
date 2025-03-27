@@ -31,6 +31,11 @@ import iconHygge3 from "../assets/icon-hygge3.svg";
 import iconHygge4 from "../assets/icon-hygge4.svg";
 import iconHygge5 from "../assets/icon-hygge5.svg";
 
+// Import individual focus icons
+import iconCozy1 from "../assets/icon-cozy1.svg";
+import iconCozy2 from "../assets/icon-cozy2.svg";
+import iconCozy3 from "../assets/icon-cozy3.svg";
+
 export default function IconOptions() {
   const { themeColors } = useTheme();
   const [activeTab, setActiveTab] = useState("original");
@@ -64,6 +69,12 @@ export default function IconOptions() {
     { id: 4, src: iconHygge4, description: "Journal centered amongst warm flames, creating a sense of calm reflection and warmth" },
     { id: 5, src: iconHygge5, description: "Window panes featuring a journal, fireplace glow, and tea cup - all elements of cozy journaling" }
   ];
+  
+  const cozyFocusIcons = [
+    { id: 1, src: iconCozy1, description: "Detailed steaming teacup and saucer with delicate steam wisps, representing warmth, comfort, and moments of peaceful reflection" },
+    { id: 2, src: iconCozy2, description: "Open journal with detailed lined pages and sketches, symbolizing the act of documenting thoughts and creative expression" },
+    { id: 3, src: iconCozy3, description: "Crackling fireplace with vibrant, dancing flames and decorative mantel, capturing the essence of warmth and home comfort" }
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -87,11 +98,12 @@ export default function IconOptions() {
           </div>
           
           <Tabs defaultValue="original" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="original">Original Options</TabsTrigger>
               <TabsTrigger value="variations">Option 3 Variations</TabsTrigger>
               <TabsTrigger value="inspiration">Starburst Inspiration</TabsTrigger>
               <TabsTrigger value="hygge">Hygge Cozy</TabsTrigger>
+              <TabsTrigger value="focus">Individual Focus</TabsTrigger>
             </TabsList>
             
             <TabsContent value="original" className="mt-6">
@@ -261,6 +273,53 @@ export default function IconOptions() {
                     <li><strong>Design Approach:</strong> Flat, modern aesthetics with clean lines and geometric shapes, avoiding drop shadows or 3D effects for a timeless, contemporary feel.</li>
                     <li><strong>Color Palette:</strong> Warm oranges and browns are balanced with cooler blue-grays to create visual harmony and evoke both warmth and calm.</li>
                     <li><strong>Emotional Response:</strong> These icons aim to trigger a visceral sense of comfort and introspection - the feeling of being wrapped in a blanket with a journal and warm drink by the fire.</li>
+                  </ul>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="focus" className="mt-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-xl font-semibold">Individual Focus Icons</h3>
+                  <p className="text-sm text-muted-foreground">
+                    These icons each focus on a single cozy element in detail, highlighting the teacup, journal, or fireplace as standalone symbols of comfort and reflection.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {cozyFocusIcons.map((icon) => (
+                    <Card key={icon.id} className="flex flex-col">
+                      <CardHeader>
+                        <CardTitle>Focus {icon.id}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1 flex items-center justify-center p-6 bg-muted/20 rounded-md">
+                        <img 
+                          src={icon.src} 
+                          alt={`Focus Icon ${icon.id}`} 
+                          className="w-48 h-48 object-contain"
+                        />
+                      </CardContent>
+                      <CardFooter className="flex flex-col items-start gap-4 pt-4">
+                        <CardDescription>{icon.description}</CardDescription>
+                        <Button variant="outline" className="w-full">
+                          Select Focus {icon.id}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+                
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">Design Philosophy</h4>
+                  <p className="text-sm mb-4">
+                    These designs spotlight individual elements that represent different aspects of the cozy journaling experience. Each icon has been refined to stand alone while still conveying the core elements of comfort and reflection:
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    <li><strong>Focus 1: The Teacup</strong> - Symbolizes taking time for yourself, pausing for reflection, and creating a peaceful moment in your day. The delicate steam wisps represent the warmth and transient nature of our thoughts.</li>
+                    <li><strong>Focus 2: The Journal</strong> - Represents the act of documenting thoughts and experiences. The combination of lined pages and sketches illustrates how journaling can be both structured reflection and creative expression.</li>
+                    <li><strong>Focus 3: The Fireplace</strong> - Embodies warmth, comfort, and the creation of a safe space for vulnerability and introspection. The dancing flames symbolize the dynamic nature of our inner thoughts.</li>
+                    <li><strong>Deliberate Simplicity:</strong> Each icon focuses on a single element rendered in clean, modern, two-dimensional style to maintain visual clarity and emotional resonance.</li>
                   </ul>
                 </div>
               </div>
