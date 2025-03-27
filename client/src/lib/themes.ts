@@ -2,27 +2,27 @@ export type ThemeName = 'cozy' | 'midnight' | 'sunset';
 
 export const themes = {
   cozy: {
-    primary: '#D27D52',   // Soft Terracotta - warm and inviting
-    secondary: '#556B2F', // Deep Olive - grounded and earthy
-    accent: '#F5EFE6',    // Warm Cream - soothing and comfortable
-    neutral: '#3B2E2A',   // Rich Chestnut - evokes the feeling of a rustic cabin
-    surface: '#F5EFE6',   // Using Warm Cream for better readability
-    text: '#2D2D2D'       // Charcoal Black - strong but subtle contrast
+    primary: '#C06B45',    // Warm Terracotta - more contrast for better visibility
+    secondary: '#5D7052',  // Sage Green - more subdued for better harmony
+    accent: '#F9F4EC',     // Soft Cream - lighter for better contrast
+    neutral: '#F9F4EC',    // Light Cream - lighter neutral for better readability
+    surface: '#FFFFFF',    // Pure White - maximum readability for content
+    text: '#2A2520'        // Dark Brown - improved contrast while maintaining warmth
   },
   midnight: {
-    primary: '#1B2432',   // Deep Midnight Blue - mysterious and intimate
-    secondary: '#543C52', // Burgundy Wine - rich and comforting
-    accent: '#C9A3B4',    // Dusty Rose - subtle touch of warmth
-    neutral: '#2E2E3A',   // Smoky Quartz - cozy and grounding
-    surface: '#35374A',   // Slate Blue - more readable than the original
-    text: '#D1D1D1'       // Silver Gray - elegant and easy to read
+    primary: '#8A9FD1',   // Periwinkle Blue - vibrant against dark backgrounds
+    secondary: '#A06989', // Muted Mauve - elegant accent color
+    accent: '#D9C5D0',    // Pale Lilac - subtle highlight color
+    neutral: '#1A1B26',   // Dark Navy - rich background
+    surface: '#282A3A',   // Steel Blue Gray - better reading contrast
+    text: '#E8E8E8'       // Bright White - maximum readability on dark backgrounds
   },
   sunset: {
-    primary: '#F9A826',    // Golden Yellow - warm and energetic
-    secondary: '#E05780',  // Rose Pink - vibrant and joyful
-    accent: '#FBE5D6',     // Peach Cream - soft and delicate
-    neutral: '#20283D',    // Deep Blue - elegant evening sky
-    surface: '#FBE5D6',    // Peach Cream for better readability
-    text: '#20283D'        // Deep Blue - clear and crisp contrast
+    primary: '#E67E22',    // Vibrant Orange - warm and energetic with better contrast
+    secondary: '#D35400',  // Burnt Orange - deeper complementary color
+    accent: '#FEF5E7',     // Lighter Cream - softer highlight with better contrast
+    neutral: '#FFF9F0',    // Soft Ivory - light neutral background
+    surface: '#FFFFFF',    // Pure White - maximum readability for content
+    text: '#34495E'        // Deep Blue Gray - better contrast while remaining warm
   }
 };
