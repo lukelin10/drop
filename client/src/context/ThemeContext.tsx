@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { ThemeName, themes } from '@/lib/themes';
+import { ThemeName, themes } from '../lib/themes';
 
 interface ThemeContextType {
   activeTheme: ThemeName;
   setTheme: (theme: ThemeName) => void;
-  themeColors: typeof themes.ocean;
+  themeColors: typeof themes.cozy;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [activeTheme, setActiveTheme] = useState<ThemeName>('ocean');
+  const [activeTheme, setActiveTheme] = useState<ThemeName>('cozy');
 
   const setTheme = (theme: ThemeName) => {
     setActiveTheme(theme);
