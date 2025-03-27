@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  
+  <!-- Light Bulb Base -->
+  <path d="M256 145C220 145 190 175 190 210C190 235 205 256 225 265V290H287V265C307 256 322 235 322 210C322 175 292 145 256 145Z" fill="#9DB2BF"/>
+  
+  <!-- Light Bulb Cap -->
+  <rect x="230" y="290" width="52" height="10" rx="2" fill="#9DB2BF" fill-opacity="0.7"/>
+  <rect x="235" y="300" width="42" height="10" rx="2" fill="#C06B45"/>
+  <rect x="240" y="310" width="32" height="7" rx="2" fill="#C06B45"/>
+  
+  <!-- Glowing Interior -->
+  <path d="M256 165C232 165 210 187 210 210C210 228 221 244 235 251V270H277V251C291 244 302 228 302 210C302 187 280 165 256 165Z" fill="#E88C59" fill-opacity="0.8"/>
+  
+  <!-- Starburst Explosion of Ideas -->
+  <g>
+    <!-- Main Inspiration Rays -->
+    <path d="M256 100L268 150L244 150L256 100Z" fill="#E88C59"/>
+    <path d="M320 130L290 170L280 150L320 130Z" fill="#D2846D"/>
+    <path d="M360 190L305 200L310 180L360 190Z" fill="#E88C59"/>
+    <path d="M370 260L310 250L315 230L370 260Z" fill="#D2846D"/>
+    <path d="M350 325L300 285L315 270L350 325Z" fill="#E88C59"/>
+    <path d="M300 370L270 320L290 310L300 370Z" fill="#D2846D"/>
+    <path d="M235 380L245 320L265 325L235 380Z" fill="#E88C59"/>
+    <path d="M180 350L210 310L225 320L180 350Z" fill="#D2846D"/>
+    <path d="M140 290L190 275L195 290L140 290Z" fill="#E88C59"/>
+    <path d="M130 220L185 225L180 240L130 220Z" fill="#D2846D"/>
+    <path d="M150 160L195 185L185 200L150 160Z" fill="#E88C59"/>
+    <path d="M195 125L220 170L205 175L195 125Z" fill="#D2846D"/>
+    
+    <!-- Smaller Accent Rays -->
+    <path d="M270 110L275 135L265 135L270 110Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M300 145L285 165L280 155L300 145Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M340 195L315 200L318 185L340 195Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M350 255L320 250L322 235L350 255Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M330 305L300 280L310 270L330 305Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M290 345L270 315L280 310L290 345Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M245 350L250 320L260 322L245 350Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M200 335L220 310L230 315L200 335Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M165 295L190 285L192 295L165 295Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M155 235L185 230L188 240L155 235Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M170 185L200 195L195 205L170 185Z" fill="#C06B45" fill-opacity="0.8"/>
+    <path d="M215 145L225 170L215 172L215 145Z" fill="#C06B45" fill-opacity="0.8"/>
+  </g>
+  
+  <!-- Light Fixture Highlight -->
+  <ellipse cx="256" cy="210" rx="25" ry="15" fill="#F9F4EC" fill-opacity="0.5"/>
+</svg>
