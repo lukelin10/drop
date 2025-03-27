@@ -14,15 +14,15 @@ export const themes = {
     secondary: '#543C52', // Burgundy Wine - rich and comforting
     accent: '#C9A3B4',    // Dusty Rose - subtle touch of warmth
     neutral: '#2E2E3A',   // Smoky Quartz - cozy and grounding
-    surface: '#C9A3B4',   // Using Dusty Rose for better readability
+    surface: '#35374A',   // Slate Blue - more readable than the original
     text: '#D1D1D1'       // Silver Gray - elegant and easy to read
   },
   sunset: {
-    primary: '#FF7043',
-    secondary: '#FFAB91',
-    accent: '#E64A19',
-    neutral: '#FFF8F6',
-    surface: '#FFFFFF',
-    text: '#BF360C'
+    primary: '#F9A826',    // Golden Yellow - warm and energetic
+    secondary: '#E05780',  // Rose Pink - vibrant and joyful
+    accent: '#FBE5D6',     // Peach Cream - soft and delicate
+    neutral: '#20283D',    // Deep Blue - elegant evening sky
+    surface: '#FBE5D6',    // Peach Cream for better readability
+    text: '#20283D'        // Deep Blue - clear and crisp contrast
   }
 };

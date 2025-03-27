@@ -21,17 +21,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div 
-      className="phone-frame rounded-[40px] w-[375px] h-[812px] p-4 relative overflow-hidden shadow-xl"
-      style={{ backgroundColor: themeColors.surface }}
+      className="app-container min-h-screen flex flex-col"
+      style={{ 
+        backgroundColor: themeColors.neutral,
+        color: themeColors.text
+      }}
     >
       <StatusBar />
       
-      <div 
-        className="app-content w-full h-[calc(100%-70px)] rounded-[30px] overflow-y-auto overflow-x-hidden relative"
-        style={{ backgroundColor: themeColors.neutral }}
+      <main 
+        className="flex-1 max-w-md mx-auto w-full px-4 pt-20 pb-24 overflow-y-auto"
       >
         {children}
-      </div>
+      </main>
       
       <NavigationBar activeScreen={getActiveScreen()} />
     </div>

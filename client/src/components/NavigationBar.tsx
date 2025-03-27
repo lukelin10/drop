@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from 'wouter';
-import { Home, BookOpen, Compass, Bell } from 'lucide-react';
+import { Home, BookOpen, Compass } from 'lucide-react';
 
 interface NavigationBarProps {
   activeScreen: 'home' | 'journal' | 'feed';
@@ -14,41 +14,57 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ activeScreen }) => {
   const navItems = [
     { id: 'home', label: 'Home', icon: Home, path: '/' },
     { id: 'journal', label: 'Journal', icon: BookOpen, path: '/journal' },
-    { id: 'feed', label: 'Explore', icon: Compass, path: '/feed' },
-    { id: 'alerts', label: 'Alerts', icon: Bell, path: '/alerts' }
+    { id: 'feed', label: 'Explore', icon: Compass, path: '/feed' }
   ];
 
   return (
-    <div 
-      className="nav-bar h-[70px] w-full absolute bottom-0 left-0 flex justify-around items-center border-t"
+    <nav 
+      className="py-2 w-full fixed bottom-0 border-t flex justify-center"
       style={{ 
         backgroundColor: themeColors.surface,
-        borderColor: `${themeColors.secondary}20`, // 20% opacity
-        color: themeColors.text 
+        borderColor: `${themeColors.accent}15`,
+        backdropFilter: 'blur(8px)',
       }}
     >
-      {navItems.map(item => {
-        const isActive = activeScreen === item.id;
-        const IconComponent = item.icon;
-        
-        return (
-          <button 
-            key={item.id}
-            className="nav-item flex flex-col items-center justify-center text-xs font-medium w-[60px]"
-            onClick={() => setLocation(item.path)}
-            disabled={item.id === 'alerts'} // Disable alerts for prototype
-          >
-            <IconComponent 
-              className="mb-1 w-5 h-5"
-              style={{ color: isActive ? themeColors.primary : 'inherit' }}
-            />
-            <span style={{ color: isActive ? themeColors.primary : 'inherit' }}>
-              {item.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+      <div className="flex max-w-md w-full justify-around px-4">
+        {navItems.map(item => {
+          const isActive = activeScreen === item.id;
+          const IconComponent = item.icon;
+          
+          return (
+            <button 
+              key={item.id}
+              className="flex flex-col items-center gap-1 py-2 transition-all relative"
+              onClick={() => setLocation(item.path)}
+              aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <IconComponent 
+                className={`w-5 h-5 transition-all ${isActive ? 'scale-110' : 'scale-100'}`}
+                style={{ 
+                  color: isActive ? themeColors.primary : `${themeColors.text}80`
+                }}
+              />
+              <span 
+                className={`text-xs font-medium transition-all ${isActive ? 'opacity-100' : 'opacity-70'}`}
+                style={{ 
+                  color: isActive ? themeColors.primary : themeColors.text
+                }}
+              >
+                {item.label}
+              </span>
+              
+              {isActive && (
+                <div 
+                  className="absolute -top-2 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: themeColors.primary }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 };
 

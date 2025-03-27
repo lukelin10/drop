@@ -19,36 +19,40 @@ const MoodSelector: React.FC = () => {
   ];
 
   return (
-    <div className="mb-6">
-      <h2 
-        className="text-lg font-medium mb-3"
-        style={{ color: themeColors.text }}
-      >
-        Today's Mood
-      </h2>
-      <div className="flex gap-3 overflow-x-auto py-2">
+    <div className="rounded-lg p-3" style={{ backgroundColor: `${themeColors.accent}15` }}>
+      <div className="grid grid-cols-5 gap-2">
         {moods.map((mood) => {
           const isSelected = selectedMood === mood.label;
           
           return (
-            <div key={mood.label} className="flex flex-col items-center">
+            <button 
+              key={mood.label} 
+              className={`flex flex-col items-center transition-all duration-200 py-2 rounded-md ${
+                isSelected ? 'scale-110' : 'scale-100 hover:scale-105'
+              }`}
+              style={{ 
+                backgroundColor: isSelected ? `${themeColors.primary}15` : 'transparent',
+              }}
+              onClick={() => setSelectedMood(mood.label)}
+            >
               <div 
-                className="w-12 h-12 rounded-full flex items-center justify-center text-xl cursor-pointer"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-xl cursor-pointer"
                 style={{ 
-                  backgroundColor: isSelected ? themeColors.secondary : '#E2E8F0',
-                  color: isSelected ? 'white' : '#718096'
+                  backgroundColor: isSelected ? themeColors.accent : `${themeColors.accent}30`,
+                  boxShadow: isSelected ? `0 2px 8px ${themeColors.accent}50` : 'none'
                 }}
-                onClick={() => setSelectedMood(mood.label)}
               >
                 {mood.emoji}
               </div>
               <span 
-                className="text-xs mt-1"
-                style={{ color: themeColors.text }}
+                className="text-xs mt-1 font-medium"
+                style={{ 
+                  color: isSelected ? themeColors.primary : themeColors.text
+                }}
               >
                 {mood.label}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>

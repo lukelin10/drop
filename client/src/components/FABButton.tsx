@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { Plus } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 const FABButton: React.FC = () => {
@@ -13,11 +13,16 @@ const FABButton: React.FC = () => {
   
   return (
     <button
-      className="fab-button w-14 h-14 rounded-full flex items-center justify-center shadow-lg fixed bottom-20 right-5 z-10"
-      style={{ backgroundColor: themeColors.primary, color: 'white' }}
+      className="w-14 h-14 rounded-full flex items-center justify-center fixed bottom-20 right-5 z-10 transition-all duration-300 hover:scale-105 active:scale-95"
+      style={{ 
+        backgroundColor: themeColors.primary, 
+        color: 'white',
+        boxShadow: `0 4px 14px ${themeColors.primary}40`
+      }}
       onClick={handleClick}
+      aria-label="New journal entry"
     >
-      <Plus className="w-6 h-6" />
+      <Pencil className="w-5 h-5" />
     </button>
   );
 };
