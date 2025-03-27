@@ -1,4 +1,4 @@
-export type ThemeName = 'cozy' | 'forest' | 'sunset';
+export type ThemeName = 'cozy' | 'midnight' | 'sunset';
 
 export const themes = {
   cozy: {
@@ -9,13 +9,13 @@ export const themes = {
     surface: '#F5EFE6',   // Using Warm Cream for better readability
     text: '#2D2D2D'       // Charcoal Black - strong but subtle contrast
   },
-  forest: {
-    primary: '#43A047',
-    secondary: '#81C784',
-    accent: '#2E7D32',
-    neutral: '#F9FBF7',
-    surface: '#FFFFFF',
-    text: '#1B5E20'
+  midnight: {
+    primary: '#1B2432',   // Deep Midnight Blue - mysterious and intimate
+    secondary: '#543C52', // Burgundy Wine - rich and comforting
+    accent: '#C9A3B4',    // Dusty Rose - subtle touch of warmth
+    neutral: '#2E2E3A',   // Smoky Quartz - cozy and grounding
+    surface: '#C9A3B4',   // Using Dusty Rose for better readability
+    text: '#D1D1D1'       // Silver Gray - elegant and easy to read
   },
   sunset: {
     primary: '#FF7043',
