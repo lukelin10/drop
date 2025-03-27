@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  
+  <!-- Container Circle -->
+  <circle cx="256" cy="256" r="160" fill="#9DB2BF" fill-opacity="0.2"/>
+  
+  <!-- Open Journal/Book -->
+  <path d="M151 216H256V356C256 356 185 356 171 356C157 356 151 350 151 336V216Z" fill="#E88C59"/>
+  <path d="M361 216H256V356C256 356 327 356 341 356C355 356 361 350 361 336V216Z" fill="#D2846D"/>
+  
+  <!-- Binding Detail -->
+  <rect x="246" y="216" width="20" height="140" fill="#C06B45"/>
+  
+  <!-- Droplet -->
+  <path d="M256 140C256 140 223 193 223 223C223 253 238 273 256 273C274 273 289 253 289 223C289 193 256 140 256 140Z" fill="#C06B45"/>
+  
+  <!-- Droplet Highlight -->
+  <path d="M256 160C256 160 233 198 233 218C233 238 243 253 256 253C269 253 279 238 279 218C279 198 256 160 256 160Z" fill="#D2846D"/>
+  
+  <!-- Reflection Spot -->
+  <circle cx="245" cy="195" r="10" fill="#F9F4EC" fill-opacity="0.7"/>
+</svg>
