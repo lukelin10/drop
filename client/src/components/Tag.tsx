@@ -19,35 +19,36 @@ const Tag: React.FC<TagProps> = ({
   
   if (isAddButton) {
     return (
-      <div 
-        className="px-3 py-1 rounded-full text-sm flex items-center cursor-pointer"
+      <button 
+        className="px-2.5 py-0.5 rounded-md text-xs flex items-center gap-1 transition-colors"
         style={{ 
           borderWidth: 1,
           borderStyle: 'dashed',
-          borderColor: themeColors.secondary,
-          color: themeColors.secondary
+          borderColor: `${themeColors.secondary}50`,
+          color: themeColors.secondary,
         }}
         onClick={onClick}
       >
-        <Plus className="w-3 h-3 mr-1" />
+        <Plus className="w-3 h-3" />
         <span>{label}</span>
-      </div>
+      </button>
     );
   }
   
   return (
     <div 
-      className="px-3 py-1 rounded-full text-sm flex items-center"
+      className="px-2.5 py-0.5 rounded-md text-xs flex items-center gap-1.5"
       style={{ 
-        backgroundColor: `${themeColors.secondary}20`,
-        color: themeColors.primary
+        backgroundColor: `${themeColors.accent}20`,
+        color: themeColors.secondary,
       }}
     >
-      <span>{label}</span>
+      <span className="font-medium">{label}</span>
       {onRemove && (
         <button 
-          className="ml-2 text-xs"
+          className="opacity-70 hover:opacity-100 transition-opacity"
           onClick={onRemove}
+          aria-label="Remove tag"
         >
           <X className="w-3 h-3" />
         </button>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import Tag from './Tag';
+import { CalendarClock } from 'lucide-react';
 
 interface JournalEntryProps {
   title: string;
@@ -18,18 +19,32 @@ const JournalEntry: React.FC<JournalEntryProps> = ({
   const { themeColors } = useTheme();
   
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm mb-3">
-      <div className="flex justify-between items-start mb-2">
+    <div 
+      className="p-4 rounded-lg mb-4 border transition-all duration-200 hover:shadow-sm"
+      style={{ 
+        backgroundColor: `${themeColors.surface}`,
+        borderColor: `${themeColors.accent}20`
+      }}
+    >
+      <div className="flex justify-between items-start mb-3">
         <h3 
           className="font-medium"
-          style={{ color: themeColors.text }}
+          style={{ color: themeColors.primary }}
         >
           {title}
         </h3>
-        <span className="text-xs text-gray-500">{time}</span>
+        <div className="flex items-center gap-1 text-xs opacity-70" style={{ color: themeColors.text }}>
+          <CalendarClock className="h-3 w-3" />
+          <span>{time}</span>
+        </div>
       </div>
-      <p className="text-gray-600 text-sm line-clamp-2">{content}</p>
-      <div className="flex mt-3 gap-2 flex-wrap">
+      <p 
+        className="text-sm line-clamp-2 mb-3"
+        style={{ color: themeColors.text }}
+      >
+        {content}
+      </p>
+      <div className="flex gap-2 flex-wrap">
         {tags.map((tag) => (
           <Tag key={tag} label={tag} />
         ))}
