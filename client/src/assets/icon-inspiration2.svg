@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="#F9F4EC"/>
+  
+  <!-- Journal/Book Base -->
+  <rect x="175" y="158" width="162" height="196" rx="8" fill="#9DB2BF"/>
+  
+  <!-- Journal Cover Overlay -->
+  <rect x="176" y="158" width="80" height="196" rx="8" fill="#9DB2BF" fill-opacity="0.7"/>
+  
+  <!-- Journal Binding -->
+  <rect x="241" y="158" width="30" height="196" fill="#E88C59" fill-opacity="0.8"/>
+  
+  <!-- Explosion/Starburst of Ideas -->
+  <g>
+    <!-- Primary Bursts -->
+    <path d="M290 185L350 160L335 195L290 185Z" fill="#E88C59"/>
+    <path d="M290 215L370 210L340 235L290 215Z" fill="#D2846D"/>
+    <path d="M290 245L365 265L330 280L290 245Z" fill="#E88C59"/>
+    <path d="M290 275L350 310L320 315L290 275Z" fill="#D2846D"/>
+    <path d="M290 305L330 350L305 335L290 305Z" fill="#E88C59"/>
+    
+    <!-- Secondary Bursts -->
+    <path d="M305 195L330 170L325 190L305 195Z" fill="#C06B45"/>
+    <path d="M305 225L340 220L325 230L305 225Z" fill="#C06B45"/>
+    <path d="M305 255L335 265L320 270L305 255Z" fill="#C06B45"/>
+    <path d="M305 285L330 300L315 295L305 285Z" fill="#C06B45"/>
+    <path d="M305 315L320 330L310 320L305 315Z" fill="#C06B45"/>
+  </g>
+  
+  <!-- Page Lines -->
+  <rect x="190" y="180" width="45" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  <rect x="190" y="200" width="55" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  <rect x="190" y="220" width="40" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  <rect x="190" y="240" width="55" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  <rect x="190" y="260" width="35" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  <rect x="190" y="280" width="55" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  <rect x="190" y="300" width="45" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  <rect x="190" y="320" width="50" height="2" rx="1" fill="#F9F4EC" fill-opacity="0.8"/>
+  
+  <!-- Light Bulb Accent -->
+  <circle cx="300" cy="230" r="18" fill="#F9F4EC" fill-opacity="0.9"/>
+  <path d="M300 216C293.5 216 288 221.5 288 228C288 231.5 289.5 234.5 292 236.5V241H308V236.5C310.5 234.5 312 231.5 312 228C312 221.5 306.5 216 300 216Z" fill="#E88C59"/>
+  <rect x="295" y="241" width="10" height="3" rx="1" fill="#C06B45"/>
+  <rect x="296" y="244" width="8" height="3" rx="1" fill="#C06B45"/>
+</svg>

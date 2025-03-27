@@ -19,6 +19,11 @@ import iconOption3c from "../assets/icon-option3c.svg";
 import iconOption3d from "../assets/icon-option3d.svg";
 import iconOption3e from "../assets/icon-option3e.svg";
 
+// Import inspiration starburst icons
+import iconInspiration1 from "../assets/icon-inspiration1.svg";
+import iconInspiration2 from "../assets/icon-inspiration2.svg";
+import iconInspiration3 from "../assets/icon-inspiration3.svg";
+
 export default function IconOptions() {
   const { themeColors } = useTheme();
   const [activeTab, setActiveTab] = useState("original");
@@ -37,6 +42,12 @@ export default function IconOptions() {
     { id: "3c", src: iconOption3c, description: "Minimalist approach with clean lines, subtle ripple effects, and focused central droplet" },
     { id: "3d", src: iconOption3d, description: "Layered design with overlapping elements creating depth and sophisticated visual hierarchy" },
     { id: "3e", src: iconOption3e, description: "Modern rounded square speech bubble with textured droplet and dynamic line elements" }
+  ];
+  
+  const inspirationIcons = [
+    { id: 1, src: iconInspiration1, description: "Starburst radiating from central point with subtle speech bubble accent, representing moments of inspiration and connection" },
+    { id: 2, src: iconInspiration2, description: "Journal with dynamic starburst of ideas emerging from its pages, symbolizing the journey from reflection to insight" },
+    { id: 3, src: iconInspiration3, description: "Light bulb surrounded by an energetic starburst explosion of inspiration rays, capturing the 'aha' moment of self-discovery" }
   ];
 
   return (
@@ -61,9 +72,10 @@ export default function IconOptions() {
           </div>
           
           <Tabs defaultValue="original" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="original">Original Options</TabsTrigger>
               <TabsTrigger value="variations">Option 3 Variations</TabsTrigger>
+              <TabsTrigger value="inspiration">Starburst Inspiration</TabsTrigger>
             </TabsList>
             
             <TabsContent value="original" className="mt-6">
@@ -140,6 +152,52 @@ export default function IconOptions() {
                     <li><strong>Option 3c:</strong> Takes a minimalist approach focusing on intentional simplicity and meaningful details.</li>
                     <li><strong>Option 3d:</strong> Creates visual interest through layering and depth, representing the layers of self-reflection.</li>
                     <li><strong>Option 3e:</strong> Balances modern design principles with organic elements for a contemporary feel.</li>
+                  </ul>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="inspiration" className="mt-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-xl font-semibold">Starburst Inspiration Icons</h3>
+                  <p className="text-sm text-muted-foreground">
+                    These new icons focus on the concept of sparking inspiration and insights, using starburst patterns to convey moments of discovery and reflection.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {inspirationIcons.map((icon) => (
+                    <Card key={icon.id} className="flex flex-col">
+                      <CardHeader>
+                        <CardTitle>Inspiration {icon.id}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1 flex items-center justify-center p-6 bg-muted/20 rounded-md">
+                        <img 
+                          src={icon.src} 
+                          alt={`Inspiration Icon ${icon.id}`} 
+                          className="w-48 h-48 object-contain"
+                        />
+                      </CardContent>
+                      <CardFooter className="flex flex-col items-start gap-4 pt-4">
+                        <CardDescription>{icon.description}</CardDescription>
+                        <Button variant="outline" className="w-full">
+                          Select Inspiration {icon.id}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+                
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">Design Philosophy</h4>
+                  <p className="text-sm mb-4">
+                    These designs center around the starburst concept, symbolizing the moments of inspiration and insight that come from self-reflection and journaling. Each design captures a different aspect of this experience:
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    <li><strong>Inspiration 1:</strong> A clean, symmetrical starburst pattern that creates a sense of energy radiating outward from a central point, representing the ripple effect of self-discovery.</li>
+                    <li><strong>Inspiration 2:</strong> Combines a journal with a dynamic burst of ideas, illustrating how journaling can lead to unexpected insights and creative breakthroughs.</li>
+                    <li><strong>Inspiration 3:</strong> The classic light bulb moment, reimagined with an energetic starburst to capture that perfect 'aha!' moment when reflection leads to clarity.</li>
                   </ul>
                 </div>
               </div>
