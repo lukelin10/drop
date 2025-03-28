@@ -1,4 +1,4 @@
-import { Express, Request, Response, NextFunction } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import { createServer, type Server } from 'http';
 import { isAuthenticated, setupAuth } from './auth';
 import { storage } from './storage';
@@ -497,6 +497,17 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error fetching entries by tag:', error);
       return res.status(500).json({ message: 'Error fetching entries' });
+    }
+  });
+  
+  // Serve static files from the client/dist directory
+  app.use(express.static('client/dist'));
+  
+  // Catch-all route to serve the React app for any other route
+  app.get('*', (req: Request, res: Response) => {
+    // Only handle non-API routes
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile('index.html', { root: 'client/dist' });
     }
   });
   

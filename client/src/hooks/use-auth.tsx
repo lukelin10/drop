@@ -6,17 +6,16 @@ import {
 } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "./use-toast";
-
-// Temporary type definitions until we resolve path issues
+// Re-define types locally since we can't import directly from shared/schema
 type User = {
   id: number;
   username: string;
   email: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastLogin?: string;
-  preferredTheme?: string;
-  notificationPreferences?: string;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+  lastLogin?: Date | null;
+  preferredTheme?: string | null;
+  notificationPreferences?: string | null;
 };
 
 type LoginInput = {

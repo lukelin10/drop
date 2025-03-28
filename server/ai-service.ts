@@ -167,7 +167,7 @@ export class AnthropicService implements IAIService {
         ],
       });
       
-      return response.content[0].text;
+      return response.content[0].type === 'text' ? response.content[0].text : 'A thoughtful conversation exploring personal reflections and insights.';
     } catch (error) {
       console.error('Error generating summary:', error);
       return 'A thoughtful conversation exploring personal reflections and insights.';

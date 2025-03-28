@@ -112,10 +112,18 @@ async function main() {
         "expire" timestamp(6) NOT NULL
       )
       WITH (OIDS=FALSE);
-      
-      ALTER TABLE "session" ADD CONSTRAINT "session_pkey" 
-        PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
-        
+    `);
+    
+    try {
+      await pool.query(`
+        ALTER TABLE "session" ADD CONSTRAINT "session_pkey" 
+          PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+      `);
+    } catch (err) {
+      console.log('Primary key constraint already exists, skipping...');
+    }
+    
+    await pool.query(`
       CREATE INDEX IF NOT EXISTS "IDX_session_expire" 
         ON "session" ("expire");
     `);
