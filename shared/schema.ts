@@ -1,8 +1,8 @@
-import { pgTable, serial, text, timestamp, boolean, varchar, date, integer, smallint, unique, foreignKey, primaryKey, real } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, timestamp, boolean, integer, date, real } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-// Users Table
+// Users
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 255 }).notNull().unique(),
@@ -14,123 +14,104 @@ export const users = pgTable('users', {
   notificationPreferences: text('notification_preferences').default('{}')
 });
 
-// Prompts Table
+// Prompts
 export const prompts = pgTable('prompts', {
   id: serial('id').primaryKey(),
-  promptText: text('prompt_text').notNull(),
-  category: varchar('category', { length: 100 }),
+  text: text('text').notNull(),
   activeDate: date('active_date').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  isActive: boolean('is_active').default(true)
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 });
 
-// Journal Entries Table
+// Journal Entries
 export const journalEntries = pgTable('journal_entries', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  promptId: integer('prompt_id').references(() => prompts.id),
-  entryDate: date('entry_date').notNull(),
-  initialResponse: text('initial_response').notNull(),
-  moodScore: smallint('mood_score'),
-  isFavorite: boolean('is_favorite').default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
-}, (table) => {
-  return {
-    userEntryDateUnique: unique().on(table.userId, table.entryDate)
-  };
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  promptId: integer('prompt_id').references(() => prompts.id),
+  initialResponse: text('initial_response').notNull(),
+  moodScore: integer('mood_score'),
+  userId: integer('user_id').notNull().references(() => users.id),
+  entryDate: date('entry_date').notNull(),
+  isFavorite: boolean('is_favorite').default(false)
 });
 
-// Conversations Table
+// Conversations
 export const conversations = pgTable('conversations', {
   id: serial('id').primaryKey(),
-  journalEntryId: integer('journal_entry_id')
-    .references(() => journalEntries.id, { onDelete: 'cascade' })
-    .notNull(),
-  summary: text('summary'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  journalEntryId: integer('journal_entry_id').notNull().references(() => journalEntries.id),
+  summary: text('summary')
 });
 
-// Messages Table
+// Messages
 export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
-  conversationId: integer('conversation_id')
-    .references(() => conversations.id, { onDelete: 'cascade' })
-    .notNull(),
-  senderType: varchar('sender_type', { length: 10 }).notNull(), // 'user' or 'assistant'
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  conversationId: integer('conversation_id').notNull().references(() => conversations.id),
   content: text('content').notNull(),
-  sequenceOrder: integer('sequence_order').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
-}, (table) => {
-  return {
-    conversationSequenceUnique: unique().on(table.conversationId, table.sequenceOrder)
-  };
+  role: varchar('role', { length: 20 }).notNull(), // 'user' or 'assistant'
+  sequenceOrder: integer('sequence_order').notNull()
 });
 
-// Tags Table
+// Tags
 export const tags = pgTable('tags', {
   id: serial('id').primaryKey(),
-  name: varchar('name', { length: 100 }).notNull().unique(),
+  name: varchar('name', { length: 50 }).notNull().unique(),
   description: text('description'),
   isSystem: boolean('is_system').default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 });
 
-// Entry Tags Junction Table
+// Entry Tags (junction table between journal entries and tags)
 export const entryTags = pgTable('entry_tags', {
-  journalEntryId: integer('journal_entry_id')
-    .references(() => journalEntries.id, { onDelete: 'cascade' })
-    .notNull(),
-  tagId: integer('tag_id')
-    .references(() => tags.id, { onDelete: 'cascade' })
-    .notNull(),
-  source: varchar('source', { length: 20 }).notNull(), // 'user', 'system', or 'ai'
-  confidenceScore: real('confidence_score'),
-}, (table) => {
-  return {
-    pk: primaryKey(table.journalEntryId, table.tagId)
-  };
+  id: serial('id').primaryKey(),
+  journalEntryId: integer('journal_entry_id').notNull().references(() => journalEntries.id),
+  tagId: integer('tag_id').notNull().references(() => tags.id),
+  source: varchar('source', { length: 20 }).notNull(), // 'user', 'ai'
+  confidenceScore: real('confidence_score')
 });
 
-// Insert schemas
+// Zod schemas for inserts
 export const insertUserSchema = createInsertSchema(users).omit({ 
-  id: true, 
+  id: true,
   createdAt: true, 
-  updatedAt: true, 
-  lastLogin: true 
+  updatedAt: true
 });
 
 export const insertPromptSchema = createInsertSchema(prompts).omit({ 
-  id: true, 
-  createdAt: true 
+  id: true,
+  createdAt: true, 
+  updatedAt: true
 });
 
 export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({ 
-  id: true, 
+  id: true,
   createdAt: true, 
-  updatedAt: true 
+  updatedAt: true
 });
 
 export const insertConversationSchema = createInsertSchema(conversations).omit({ 
-  id: true, 
+  id: true,
   createdAt: true, 
-  updatedAt: true 
+  updatedAt: true
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({ 
-  id: true, 
-  createdAt: true 
+  id: true,
+  createdAt: true
 });
 
 export const insertTagSchema = createInsertSchema(tags).omit({ 
-  id: true, 
-  createdAt: true 
+  id: true,
+  createdAt: true
 });
 
 export const insertEntryTagSchema = createInsertSchema(entryTags);
 
-// Types
+// Type definitions
 export type User = typeof users.$inferSelect;
 export type NewUser = z.infer<typeof insertUserSchema>;
 
