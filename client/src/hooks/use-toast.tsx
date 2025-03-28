@@ -17,7 +17,6 @@ type ToastOptions = Omit<React.ComponentPropsWithoutRef<typeof Toast>, 'children
  */
 export const toast = ({ description, ...props }: ToastOptions) => {
   const { toast } = useToastPrimitive();
-  
   return toast({
     ...props,
     description,

@@ -1,12 +1,33 @@
-import { createContext, ReactNode, useContext } from "react";
+import React, { createContext, ReactNode, useContext } from "react";
 import {
   useQuery,
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { LoginInput, RegisterInput, User } from "../shared/schema";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "./use-toast";
+
+// Temporary type definitions until we resolve path issues
+type User = {
+  id: number;
+  username: string;
+  email: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLogin?: string;
+  preferredTheme?: string;
+  notificationPreferences?: string;
+};
+
+type LoginInput = {
+  username: string;
+  password: string;
+};
+
+type RegisterInput = LoginInput & {
+  email: string;
+  confirmPassword: string;
+};
 
 type AuthContextType = {
   user: User | null;
