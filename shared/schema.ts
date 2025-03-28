@@ -127,7 +127,17 @@ export const registerSchema = loginSchema.extend({
 });
 
 // Type definitions
-export type User = typeof users.$inferSelect;
+export type User = {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  lastLogin: Date | null;
+  preferredTheme: string | null;
+  notificationPreferences: string | null;
+};
 export type NewUser = z.infer<typeof insertUserSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

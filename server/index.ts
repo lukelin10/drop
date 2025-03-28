@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import { registerRoutes } from './routes';
 import 'dotenv/config';
-import { setupAuth } from './auth';
 
 // Create Express app
 const app = express();
@@ -12,14 +11,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Set up authentication
-setupAuth(app);
-
-// Register API routes
+// Register API routes (this also sets up authentication)
 const server = registerRoutes(app);
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
+// @ts-ignore - Ignore typing issue with the port parameter
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

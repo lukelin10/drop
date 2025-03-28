@@ -1,3 +1,3 @@
-// This file is used to start the server in development mode
 require('esbuild-register');
+require('dotenv').config();
 require('./index.ts');

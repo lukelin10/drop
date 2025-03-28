@@ -14,7 +14,7 @@ export interface IAIService {
 
 export class AnthropicService implements IAIService {
   private client: Anthropic;
-  private model: string = 'claude-3-opus-20240229'; // Using the most capable model
+  private model: string = 'claude-3-7-sonnet-20250219'; // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
   
   constructor() {
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -148,7 +148,8 @@ ${text}`
       // Try to parse the JSON response
       try {
         // Extract the JSON array from the response text (in case there's additional text)
-        const jsonMatch = responseText.match(/\[\s*\{.*\}\s*\]/s);
+        // Use a different regex approach without the 's' flag
+        const jsonMatch = responseText.match(/\[\s*\{[\s\S]*\}\s*\]/);
         if (jsonMatch) {
           return JSON.parse(jsonMatch[0]);
         }
