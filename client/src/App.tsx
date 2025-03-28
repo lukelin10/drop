@@ -6,7 +6,7 @@ import { Route, Switch } from "wouter";
 import Home from "./pages/Home";
 import Journal from "./pages/Journal";
 import Feed from "./pages/Feed";
-import IconOptions from "./pages/IconOptions";
+import NewIconOptions from "./pages/NewIconOptions";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -16,7 +16,7 @@ function App() {
       <ThemeProvider>
         <Switch>
           <Route path="/icons">
-            <IconOptions />
+            <NewIconOptions />
           </Route>
           <Route>
             <AppLayout>
