@@ -1,40 +1,19 @@
-import { db } from './db';
-import { 
-  users, 
-  prompts, 
-  journalEntries, 
-  conversations, 
-  messages, 
-  tags, 
-  entryTags,
-  type User,
-  type NewUser,
-  type Prompt,
-  type NewPrompt,
-  type JournalEntry,
-  type NewJournalEntry,
-  type Conversation,
-  type NewConversation,
-  type Message,
-  type NewMessage,
-  type Tag,
-  type NewTag,
-  type EntryTag,
-  type NewEntryTag
-} from '../shared/schema';
-import { eq, and, desc, sql, inArray } from 'drizzle-orm';
-import { Pool } from 'pg';
-import * as expressSession from 'express-session';
-import connectPg from 'connect-pg-simple';
-
-const PostgresSessionStore = connectPg(expressSession);
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+import { users, tags, journalEntries, conversations, messages, entryTags, prompts } from "../shared/schema";
+import { eq, and, desc, asc } from "drizzle-orm";
+import { db } from "./db";
+import { User, NewUser, Tag, NewTag, JournalEntry, NewJournalEntry, 
+         Conversation, NewConversation, Message, NewMessage, EntryTag, 
+         NewEntryTag, Prompt, NewPrompt } from "../shared/schema";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 export interface IStorage {
   // Users
   createUser(user: NewUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | null>;
   getUserById(id: number): Promise<User | null>;
+  getUserByUsername(username: string): Promise<User | null>;
   updateUser(id: number, data: Partial<Omit<User, 'id'>>): Promise<User | null>;
   
   // Prompts
@@ -72,76 +51,72 @@ export interface IStorage {
   getJournalEntriesByTagId(tagId: number): Promise<JournalEntry[]>;
   
   // Session store
-  sessionStore: expressSession.Store;
+  sessionStore: session.Store;
 }
 
+const PostgresSessionStore = connectPg(session);
+
 export class PostgresStorage implements IStorage {
-  sessionStore: expressSession.Store;
-  
+  sessionStore: session.Store;
+
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
     });
   }
-  
+
   // Users
   async createUser(user: NewUser): Promise<User> {
-    const [newUser] = await db.insert(users).values(user).returning();
-    return newUser;
+    const [createdUser] = await db.insert(users).values(user).returning();
+    return createdUser;
   }
-  
+
   async getUserByEmail(email: string): Promise<User | null> {
-    const result = await db.select().from(users).where(eq(users.email, email));
-    return result.length > 0 ? result[0] : null;
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || null;
   }
-  
+
   async getUserById(id: number): Promise<User | null> {
-    const result = await db.select().from(users).where(eq(users.id, id));
-    return result.length > 0 ? result[0] : null;
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || null;
   }
-  
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || null;
+  }
+
   async updateUser(id: number, data: Partial<Omit<User, 'id'>>): Promise<User | null> {
-    // Create a copy of the data to avoid modifying the original
-    const updateData = { ...data };
-    
-    // If lastLogin is provided and it has a toISOString method, use it
-    if (updateData.lastLogin && typeof updateData.lastLogin === 'object' && 'toISOString' in updateData.lastLogin) {
-      updateData.lastLogin = updateData.lastLogin.toISOString() as any;
-    }
-    
     const [updatedUser] = await db
       .update(users)
-      .set({ ...updateData, updatedAt: new Date() })
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     
     return updatedUser || null;
   }
-  
+
   // Prompts
   async createPrompt(prompt: NewPrompt): Promise<Prompt> {
-    const [newPrompt] = await db.insert(prompts).values(prompt).returning();
-    return newPrompt;
+    const [createdPrompt] = await db.insert(prompts).values(prompt).returning();
+    return createdPrompt;
   }
-  
+
   async getPromptById(id: number): Promise<Prompt | null> {
-    const result = await db.select().from(prompts).where(eq(prompts.id, id));
-    return result.length > 0 ? result[0] : null;
+    const [prompt] = await db.select().from(prompts).where(eq(prompts.id, id));
+    return prompt || null;
   }
-  
+
   async getPromptForDate(date: Date): Promise<Prompt | null> {
-    // Format date to YYYY-MM-DD for matching against activeDate
-    const formattedDate = date.toISOString().split('T')[0];
-    
-    const result = await db
+    const [prompt] = await db
       .select()
       .from(prompts)
-      .where(and(eq(prompts.activeDate, formattedDate as any), eq(prompts.isActive, true)));
+      .where(and(eq(prompts.activeDate, date), eq(prompts.isActive, true)));
     
-    return result.length > 0 ? result[0] : null;
+    return prompt || null;
   }
-  
+
   async getActivePrompts(): Promise<Prompt[]> {
     return await db
       .select()
@@ -149,26 +124,22 @@ export class PostgresStorage implements IStorage {
       .where(eq(prompts.isActive, true))
       .orderBy(desc(prompts.activeDate));
   }
-  
+
   // Journal Entries
   async createJournalEntry(entry: NewJournalEntry): Promise<JournalEntry> {
-    // Create a copy of the entry to avoid modifying the original
-    const entryToCreate = { ...entry };
-    
-    // Format date to YYYY-MM-DD for storage if it has a toISOString method
-    if (entryToCreate.entryDate && typeof entryToCreate.entryDate === 'object' && 'toISOString' in entryToCreate.entryDate) {
-      entryToCreate.entryDate = entryToCreate.entryDate.toISOString().split('T')[0] as any;
-    }
-    
-    const [newEntry] = await db.insert(journalEntries).values(entryToCreate).returning();
-    return newEntry;
+    const [createdEntry] = await db.insert(journalEntries).values(entry).returning();
+    return createdEntry;
   }
-  
+
   async getJournalEntryById(id: number): Promise<JournalEntry | null> {
-    const result = await db.select().from(journalEntries).where(eq(journalEntries.id, id));
-    return result.length > 0 ? result[0] : null;
+    const [entry] = await db
+      .select()
+      .from(journalEntries)
+      .where(eq(journalEntries.id, id));
+    
+    return entry || null;
   }
-  
+
   async getJournalEntriesByUserId(userId: number): Promise<JournalEntry[]> {
     return await db
       .select()
@@ -176,22 +147,19 @@ export class PostgresStorage implements IStorage {
       .where(eq(journalEntries.userId, userId))
       .orderBy(desc(journalEntries.entryDate));
   }
-  
+
   async getJournalEntryByUserAndDate(userId: number, date: Date): Promise<JournalEntry | null> {
-    // Format date to YYYY-MM-DD for matching against entryDate
-    const formattedDate = date.toISOString().split('T')[0];
-    
-    const result = await db
+    const [entry] = await db
       .select()
       .from(journalEntries)
       .where(and(
         eq(journalEntries.userId, userId),
-        eq(journalEntries.entryDate, formattedDate as any)
+        eq(journalEntries.entryDate, date)
       ));
     
-    return result.length > 0 ? result[0] : null;
+    return entry || null;
   }
-  
+
   async updateJournalEntry(id: number, data: Partial<Omit<JournalEntry, 'id'>>): Promise<JournalEntry | null> {
     const [updatedEntry] = await db
       .update(journalEntries)
@@ -201,27 +169,31 @@ export class PostgresStorage implements IStorage {
     
     return updatedEntry || null;
   }
-  
+
   // Conversations
   async createConversation(conversation: NewConversation): Promise<Conversation> {
-    const [newConversation] = await db.insert(conversations).values(conversation).returning();
-    return newConversation;
+    const [createdConversation] = await db.insert(conversations).values(conversation).returning();
+    return createdConversation;
   }
-  
+
   async getConversationById(id: number): Promise<Conversation | null> {
-    const result = await db.select().from(conversations).where(eq(conversations.id, id));
-    return result.length > 0 ? result[0] : null;
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, id));
+    
+    return conversation || null;
   }
-  
+
   async getConversationByJournalEntryId(journalEntryId: number): Promise<Conversation | null> {
-    const result = await db
+    const [conversation] = await db
       .select()
       .from(conversations)
       .where(eq(conversations.journalEntryId, journalEntryId));
     
-    return result.length > 0 ? result[0] : null;
+    return conversation || null;
   }
-  
+
   async updateConversation(id: number, data: Partial<Omit<Conversation, 'id'>>): Promise<Conversation | null> {
     const [updatedConversation] = await db
       .update(conversations)
@@ -231,118 +203,75 @@ export class PostgresStorage implements IStorage {
     
     return updatedConversation || null;
   }
-  
+
   // Messages
   async createMessage(message: NewMessage): Promise<Message> {
-    const [newMessage] = await db.insert(messages).values(message).returning();
-    return newMessage;
+    const [createdMessage] = await db.insert(messages).values(message).returning();
+    return createdMessage;
   }
-  
+
   async getMessagesByConversationId(conversationId: number): Promise<Message[]> {
     return await db
       .select()
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
-      .orderBy(messages.sequenceOrder);
+      .orderBy(asc(messages.sequenceOrder));
   }
-  
+
   // Tags
   async createTag(tag: NewTag): Promise<Tag> {
-    const [newTag] = await db.insert(tags).values(tag).returning();
-    return newTag;
+    const [createdTag] = await db.insert(tags).values(tag).returning();
+    return createdTag;
   }
-  
+
   async getTagById(id: number): Promise<Tag | null> {
-    const result = await db.select().from(tags).where(eq(tags.id, id));
-    return result.length > 0 ? result[0] : null;
+    const [tag] = await db.select().from(tags).where(eq(tags.id, id));
+    return tag || null;
   }
-  
+
   async getTagByName(name: string): Promise<Tag | null> {
-    const result = await db.select().from(tags).where(eq(tags.name, name));
-    return result.length > 0 ? result[0] : null;
+    const [tag] = await db.select().from(tags).where(eq(tags.name, name));
+    return tag || null;
   }
-  
+
   async getAllTags(): Promise<Tag[]> {
-    return await db.select().from(tags).orderBy(tags.name);
+    return await db.select().from(tags).orderBy(asc(tags.name));
   }
-  
+
   // Entry Tags
   async addTagToEntry(entryTag: NewEntryTag): Promise<EntryTag> {
-    // Check if the entry-tag relation already exists
-    const existing = await db
-      .select()
-      .from(entryTags)
-      .where(and(
-        eq(entryTags.journalEntryId, entryTag.journalEntryId),
-        eq(entryTags.tagId, entryTag.tagId)
-      ));
-    
-    if (existing.length > 0) {
-      // If it exists but is user-created, don't update it
-      if (existing[0].source === 'user') {
-        return existing[0];
-      }
-      
-      // Otherwise update it
-      const [updated] = await db
-        .update(entryTags)
-        .set(entryTag)
-        .where(and(
-          eq(entryTags.journalEntryId, entryTag.journalEntryId),
-          eq(entryTags.tagId, entryTag.tagId)
-        ))
-        .returning();
-      
-      return updated;
-    }
-    
-    // If it doesn't exist, create it
-    const [newEntryTag] = await db.insert(entryTags).values(entryTag).returning();
-    return newEntryTag;
+    const [createdEntryTag] = await db.insert(entryTags).values(entryTag).returning();
+    return createdEntryTag;
   }
-  
+
   async getTagsByJournalEntryId(journalEntryId: number): Promise<(Tag & { source: string; confidenceScore?: number })[]> {
-    const result = await db
+    const results = await db
       .select({
-        id: tags.id,
-        name: tags.name,
-        description: tags.description,
-        isSystem: tags.isSystem,
-        createdAt: tags.createdAt,
+        ...tags,
         source: entryTags.source,
         confidenceScore: entryTags.confidenceScore
       })
-      .from(entryTags)
-      .innerJoin(tags, eq(entryTags.tagId, tags.id))
+      .from(tags)
+      .innerJoin(
+        entryTags,
+        eq(tags.id, entryTags.tagId)
+      )
       .where(eq(entryTags.journalEntryId, journalEntryId));
-    
-    // Map to the expected return type
-    return result.map(item => ({
-      ...item,
-      confidenceScore: item.confidenceScore ?? undefined
-    }));
+
+    return results;
   }
-  
+
   async getJournalEntriesByTagId(tagId: number): Promise<JournalEntry[]> {
-    // Get all journalEntryIds that have the specified tag
-    const taggedEntriesResult = await db
-      .select({
-        journalEntryId: entryTags.journalEntryId
-      })
-      .from(entryTags)
-      .where(eq(entryTags.tagId, tagId));
-    
-    const journalEntryIds = taggedEntriesResult.map(row => row.journalEntryId);
-    
-    if (journalEntryIds.length === 0) {
-      return [];
-    }
-    
-    // Get all journal entries with those ids
     return await db
-      .select()
+      .select({
+        ...journalEntries
+      })
       .from(journalEntries)
-      .where(inArray(journalEntries.id, journalEntryIds))
+      .innerJoin(
+        entryTags,
+        eq(journalEntries.id, entryTags.journalEntryId)
+      )
+      .where(eq(entryTags.tagId, tagId))
       .orderBy(desc(journalEntries.entryDate));
   }
 }

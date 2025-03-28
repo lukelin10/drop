@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 export type ApiErrorType = {
   status: number;
@@ -7,51 +7,47 @@ export type ApiErrorType = {
 };
 
 export type QueryFnOptions = {
-  on401?: 'returnError' | 'returnNull' | 'throwError';
+  on401?: "returnError" | "returnNull" | "throwError";
 };
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export const apiRequest = async (
   method: HttpMethod,
-  url: string,
-  body?: Record<string, any>,
-): Promise<Response> => {
+  endpoint: string,
+  data?: unknown,
+  customHeaders?: Record<string, string>
+) => {
   const options: RequestInit = {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
+      ...customHeaders,
     },
-    credentials: 'include',
+    credentials: "include",
   };
 
-  if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-    options.body = JSON.stringify(body);
+  if (data && method !== "GET") {
+    options.body = JSON.stringify(data);
   }
 
-  const response = await fetch(url, options);
+  const response = await fetch(endpoint, options);
 
   if (!response.ok) {
     let errorData: ApiErrorType = {
       status: response.status,
-      message: response.statusText,
+      message: "An error occurred",
     };
 
     try {
-      const data = await response.json();
-      errorData = {
-        ...errorData,
-        message: data.message || errorData.message,
-        errors: data.errors,
-      };
+      errorData = await response.json();
     } catch (e) {
-      // If JSON parsing fails, use the original error
+      errorData.message = response.statusText || "An unknown error occurred";
     }
 
-    const error = new Error(errorData.message) as Error & ApiErrorType;
-    error.status = errorData.status;
-    error.errors = errorData.errors;
-
+    const error = new Error(errorData.message || "An error occurred");
+    (error as any).status = errorData.status;
+    (error as any).errors = errorData.errors;
     throw error;
   }
 
@@ -60,19 +56,22 @@ export const apiRequest = async (
 
 export const getQueryFn =
   (options: QueryFnOptions = {}) =>
-  async ({ queryKey }: { queryKey: string[] }): Promise<any> => {
+  async ({ queryKey }: { queryKey: string[] }) => {
     try {
-      const [url] = queryKey;
-
-      const response = await apiRequest('GET', url);
+      const endpoint = queryKey.join("/");
+      const response = await apiRequest("GET", endpoint);
+      
+      if (response.status === 204) {
+        return null;
+      }
+      
       return await response.json();
     } catch (error: any) {
-      if (error.status === 401 && options.on401) {
-        if (options.on401 === 'returnNull') {
+      if (error.status === 401) {
+        if (options.on401 === "returnNull") {
           return null;
-        }
-        if (options.on401 === 'returnError') {
-          return { error };
+        } else if (options.on401 === "returnError" || !options.on401) {
+          throw error;
         }
       }
       throw error;
@@ -82,9 +81,10 @@ export const getQueryFn =
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      queryFn: getQueryFn(),
     },
   },
 });

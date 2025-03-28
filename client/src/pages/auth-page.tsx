@@ -1,128 +1,121 @@
-import { useState } from 'react';
-import { Redirect } from 'wouter';
-import { useAuth } from '@/hooks/use-auth';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/use-auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useLocation } from "wouter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
-// Login form schema
+// Login form validation schema
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+// Registration form validation schema (extends login schema with email)
+const registerSchema = loginSchema.extend({
+  email: z.string().email("Please enter a valid email address"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
-
-// Registration form schema
-const registerSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
-
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const { user, loginMutation, registerMutation } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>('login');
+  const [, setLocation] = useLocation();
 
-  // Login form
+  // Redirect to home if user is already logged in
+  if (user) {
+    setLocation("/");
+    return null;
+  }
+
+  // Login form setup
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      username: "",
+      password: "",
     },
   });
 
-  // Register form
+  // Register form setup
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
+      username: "",
+      email: "",
+      password: "",
     },
   });
 
-  // Login form submission
   const onLoginSubmit = (values: LoginFormValues) => {
-    loginMutation.mutate({
-      email: values.email,
-      password: values.password,
-    });
+    loginMutation.mutate(values);
   };
 
-  // Register form submission
   const onRegisterSubmit = (values: RegisterFormValues) => {
-    registerMutation.mutate({
-      email: values.email,
-      password: values.password,
-      confirmPassword: values.confirmPassword,
-    });
+    registerMutation.mutate(values);
   };
-
-  // Redirect if user is already logged in
-  if (user) {
-    return <Redirect to="/" />;
-  }
 
   return (
-    <div className="grid lg:grid-cols-2 min-h-screen">
-      {/* Form Section */}
-      <div className="flex items-center justify-center p-6 lg:p-10">
-        <div className="w-full max-w-md space-y-6">
+    <div className="flex min-h-screen">
+      {/* Form section */}
+      <div className="w-full md:w-1/2 p-6 flex flex-col justify-center">
+        <div className="mx-auto w-full max-w-md space-y-6">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold">Welcome to Drop</h1>
             <p className="text-gray-500 dark:text-gray-400">
-              Your personalized journaling experience with AI-powered reflection
+              Your daily journaling companion for mindful reflection
             </p>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid grid-cols-2 w-full">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => setActiveTab(value as "login" | "register")}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
-
+            
             {/* Login Form */}
-            <TabsContent value="login" className="space-y-4">
+            <TabsContent value="login" className="space-y-4 mt-4">
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    {...loginForm.register('email')}
+                  <Label htmlFor="login-username">Username</Label>
+                  <Input 
+                    id="login-username"
+                    type="text" 
+                    placeholder="Username" 
+                    {...loginForm.register('username')}
                   />
-                  {loginForm.formState.errors.email && (
-                    <p className="text-sm text-red-500">{loginForm.formState.errors.email.message}</p>
+                  {loginForm.formState.errors.username && (
+                    <p className="text-sm text-red-500">{loginForm.formState.errors.username.message}</p>
                   )}
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input
+                  <Input 
                     id="login-password"
-                    type="password"
-                    placeholder="••••••••"
+                    type="password" 
+                    placeholder="Password" 
                     {...loginForm.register('password')}
                   />
                   {loginForm.formState.errors.password && (
                     <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
                   )}
                 </div>
+                
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
@@ -136,49 +129,52 @@ export default function AuthPage() {
                 </Button>
               </form>
             </TabsContent>
-
+            
             {/* Register Form */}
-            <TabsContent value="register" className="space-y-4">
+            <TabsContent value="register" className="space-y-4 mt-4">
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="register-username">Username</Label>
+                  <Input 
+                    id="register-username"
+                    type="text" 
+                    placeholder="Username" 
+                    {...registerForm.register('username')}
+                  />
+                  {registerForm.formState.errors.username && (
+                    <p className="text-sm text-red-500">{registerForm.formState.errors.username.message}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
                   <Label htmlFor="register-email">Email</Label>
-                  <Input
+                  <Input 
                     id="register-email"
-                    type="email"
-                    placeholder="you@example.com"
+                    type="email" 
+                    placeholder="Email" 
                     {...registerForm.register('email')}
                   />
                   {registerForm.formState.errors.email && (
                     <p className="text-sm text-red-500">{registerForm.formState.errors.email.message}</p>
                   )}
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="register-password">Password</Label>
-                  <Input
+                  <Input 
                     id="register-password"
-                    type="password"
-                    placeholder="••••••••"
+                    type="password" 
+                    placeholder="Password" 
                     {...registerForm.register('password')}
                   />
                   {registerForm.formState.errors.password && (
                     <p className="text-sm text-red-500">{registerForm.formState.errors.password.message}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-confirm">Confirm Password</Label>
-                  <Input
-                    id="register-confirm"
-                    type="password"
-                    placeholder="••••••••"
-                    {...registerForm.register('confirmPassword')}
-                  />
-                  {registerForm.formState.errors.confirmPassword && (
-                    <p className="text-sm text-red-500">{registerForm.formState.errors.confirmPassword.message}</p>
-                  )}
-                </div>
+                
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full"
                   disabled={registerMutation.isPending}
                 >
                   {registerMutation.isPending ? (
@@ -187,7 +183,7 @@ export default function AuthPage() {
                       Creating account...
                     </>
                   ) : (
-                    'Create account'
+                    'Register'
                   )}
                 </Button>
               </form>
@@ -195,25 +191,32 @@ export default function AuthPage() {
           </Tabs>
         </div>
       </div>
-
-      {/* Hero Section */}
-      <div className="hidden lg:flex flex-col items-center justify-center p-10 bg-primary/5">
-        <div className="max-w-md space-y-6 text-center">
-          <h2 className="text-3xl font-bold">Reflect, Grow, and Thrive</h2>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold">Daily Prompts</h3>
-              <p>Thoughtful questions to spark meaningful reflection</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold">AI-Powered Conversations</h3>
-              <p>Have deep, insightful discussions with your AI coach</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold">Beautiful Themes</h3>
-              <p>Customize your journaling experience with elegant themes</p>
-            </div>
-          </div>
+      
+      {/* Hero section */}
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-500 to-purple-700 text-white">
+        <div className="p-12 flex flex-col justify-center">
+          <h2 className="text-4xl font-bold mb-6">Reflect. Grow. Transform.</h2>
+          <p className="text-xl mb-8">
+            Drop is your daily companion for mindful journaling and self-discovery.
+          </p>
+          <ul className="space-y-4">
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Answer one thoughtful prompt each day</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Have meaningful conversations with our AI coach</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Track patterns and growth over time</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">✓</span>
+              <span>Automatic tagging and organization of your entries</span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

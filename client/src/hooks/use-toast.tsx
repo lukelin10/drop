@@ -1,22 +1,30 @@
-import { 
-  ToastActionElement, 
-  ToastProps 
-} from '@/components/ui/toast';
-import {
-  toast as showToast,
-  useToast as useToastPrimitive,
-} from '@/components/ui/use-toast';
+import { useToast as useToastPrimitive } from "../components/ui/use-toast";
+import { Toast } from "../components/ui/toast";
 
-type ToastOptions = Omit<ToastProps, 'children'> & { 
+/**
+ * Toast notification options
+ */
+type ToastOptions = Omit<React.ComponentPropsWithoutRef<typeof Toast>, 'children'> & { 
   description?: React.ReactNode;
-  action?: ToastActionElement 
+  action?: React.ReactElement;
+  title?: string;
+  variant?: "default" | "destructive";
 };
 
+/**
+ * Simplified toast function
+ * This wrapper makes it easier to create toast notifications with a title and description
+ */
 export const toast = ({ description, ...props }: ToastOptions) => {
-  return showToast({
+  const { toast } = useToastPrimitive();
+  
+  return toast({
     ...props,
     description,
   });
 };
 
+/**
+ * Re-export the useToast hook from the primitive
+ */
 export const useToast = useToastPrimitive;
