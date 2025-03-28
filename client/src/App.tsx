@@ -10,6 +10,8 @@ import { ProtectedRoute } from './lib/protected-route';
 import HomePage from './pages/Home';
 import JournalPage from './pages/Journal';
 import AuthPage from './pages/auth-page';
+import QuestionPage from './pages/QuestionPage';
+import ConversationPage from './pages/ConversationPage';
 import NotFound from './pages/not-found';
 
 function App() {
@@ -33,6 +35,8 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/journal" component={JournalPage} />
+      <ProtectedRoute path="/question" component={QuestionPage} />
+      <ProtectedRoute path="/conversation/:id" component={ConversationPage} />
       <Route component={NotFound} />
     </Switch>
   );
