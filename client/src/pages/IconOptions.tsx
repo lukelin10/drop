@@ -39,6 +39,11 @@ import iconCozy3 from "../assets/icon-cozy3.svg";
 // Import refined icons
 import iconTeacupRefined from "../assets/icon-teacup-refined.svg";
 
+// Import mobile app style icons
+import iconAppTeacup from "../assets/icon-app-teacup.svg";
+import iconAppTeacupWarm from "../assets/icon-app-teacup-warm.svg";
+import iconAppMinimal from "../assets/icon-app-minimal.svg";
+
 export default function IconOptions() {
   const { themeColors } = useTheme();
   const [activeTab, setActiveTab] = useState("original");
@@ -80,7 +85,10 @@ export default function IconOptions() {
   ];
   
   const refinedIcons = [
-    { id: 1, src: iconTeacupRefined, description: "Modern, simplified teacup with tea bag and elegant steam wisps - inspired by clean UI design principles while maintaining warmth and coziness" }
+    { id: 1, src: iconTeacupRefined, description: "Modern, simplified teacup with tea bag and elegant steam wisps - inspired by clean UI design principles while maintaining warmth and coziness" },
+    { id: 2, src: iconAppTeacup, description: "Mobile app-optimized icon with blue gradient background and simplified white teacup symbol - follows modern mobile design standards with strong contrast and single focal point" },
+    { id: 3, src: iconAppTeacupWarm, description: "Warm orange gradient variant with the same simplified teacup design - provides an alternative color scheme that emphasizes the app's cozy aesthetic" },
+    { id: 4, src: iconAppMinimal, description: "Ultra-minimal approach with purple gradient and essential cup silhouette - represents the absolute simplest form while maintaining brand recognition" }
   ];
 
   return (
@@ -336,29 +344,29 @@ export default function IconOptions() {
             <TabsContent value="refined" className="mt-6">
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-xl font-semibold">Refined App Icons</h3>
+                  <h3 className="text-xl font-semibold">Mobile App Icons</h3>
                   <p className="text-sm text-muted-foreground">
-                    These refined icons are inspired by clean, modern UI design principles, emphasizing simplicity and clarity while maintaining warmth and user friendliness.
+                    These production-ready icons follow industry standard mobile app icon design principles while maintaining our brand essence.
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {refinedIcons.map((icon) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                  {refinedIcons.slice(1).map((icon) => (
                     <Card key={icon.id} className="flex flex-col">
                       <CardHeader>
-                        <CardTitle>Refined {icon.id}</CardTitle>
+                        <CardTitle>App Icon {icon.id}</CardTitle>
                       </CardHeader>
                       <CardContent className="flex-1 flex items-center justify-center p-6 bg-muted/20 rounded-md">
                         <img 
                           src={icon.src} 
-                          alt={`Refined Icon ${icon.id}`} 
-                          className="w-48 h-48 object-contain"
+                          alt={`App Icon ${icon.id}`} 
+                          className="w-48 h-48 object-contain rounded-[28px]"
                         />
                       </CardContent>
                       <CardFooter className="flex flex-col items-start gap-4 pt-4">
                         <CardDescription>{icon.description}</CardDescription>
                         <Button variant="outline" className="w-full">
-                          Select Refined {icon.id}
+                          Select App Icon {icon.id}
                         </Button>
                       </CardFooter>
                     </Card>
@@ -366,16 +374,31 @@ export default function IconOptions() {
                 </div>
                 
                 <div className="mt-6 p-4 bg-muted rounded-lg">
-                  <h4 className="font-medium mb-2">Design Approach</h4>
+                  <h4 className="font-medium mb-2">Mobile App Icon Design Principles</h4>
                   <p className="text-sm mb-4">
-                    This refined icon set embraces modern app design principles while maintaining the warmth and coziness of our journaling application:
+                    These icons follow best practices from industry leaders like Apple and Google, designed for maximum impact on mobile home screens:
                   </p>
                   <ul className="space-y-2 text-sm">
-                    <li><strong>Clean Lines:</strong> Simplified shapes with clear outlines create immediately recognizable, scalable elements that work well at various sizes.</li>
-                    <li><strong>Considered Color:</strong> Deeper, richer colors create better contrast and visibility while maintaining a warm, inviting palette.</li>
-                    <li><strong>Distinctive Details:</strong> The tea bag element adds a unique, memorable detail that helps the icon stand out while reinforcing the coziness theme.</li>
-                    <li><strong>Balanced Simplicity:</strong> Elements are reduced to their most distinctive forms while maintaining enough detail to convey warmth and comfort.</li>
-                    <li><strong>Mobile-Optimized:</strong> The icon is designed with mobile app home screens in mind, with strong silhouettes that remain clear at smaller sizes.</li>
+                    <li><strong>Distinctive Silhouette:</strong> Bold, simple shape that's instantly recognizable at various sizes, from app stores to home screens.</li>
+                    <li><strong>Color Contrast:</strong> Using a single bold brand color against a solid gradient background for maximum visibility and memorability.</li>
+                    <li><strong>Rounded Corners:</strong> Following the standard "squircle" format that iOS and Android both use for their icon containers.</li>
+                    <li><strong>Single Focal Element:</strong> One clear visual element (the cup) rather than multiple detailed components that would get lost at small sizes.</li>
+                    <li><strong>Scalable Design:</strong> Works clearly at tiny sizes (notification icons) and large sizes (App Store features) without losing clarity.</li>
+                    <li><strong>Minimal Elements:</strong> Removing all non-essential details to create a bold, instantly recognizable mark that works across platforms.</li>
+                  </ul>
+                </div>
+                
+                <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                  <h4 className="font-medium mb-2 text-primary">Industry Examples</h4>
+                  <p className="text-sm mb-2">
+                    Our new app icons follow the same design principles seen in successful mobile apps like Instagram, Facebook, TikTok, Snapchat, and others:
+                  </p>
+                  <ul className="space-y-1 text-sm">
+                    <li>• Bold, simple silhouettes with minimal detail</li>
+                    <li>• Strong color contrast - often using a single bold color against a solid/gradient background</li>
+                    <li>• Rounded square/squircle format optimized for mobile displays</li>
+                    <li>• Single focal point rather than multiple detailed elements</li>
+                    <li>• Solid backgrounds (usually gradient or single color) rather than transparent/white spaces</li>
                   </ul>
                 </div>
               </div>
