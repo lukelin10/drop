@@ -7,11 +7,11 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User } from "../shared/schema";
 
-declare global {
-  namespace Express {
-    interface User extends User {}
-  }
-}
+// Import types
+import './types';
+
+// Fix TypeScript issues
+// @ts-ignore
 
 const scryptAsync = promisify(scrypt);
 
