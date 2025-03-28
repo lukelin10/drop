@@ -2,31 +2,37 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ThemeSwitcher from "../components/ThemeSwitcher";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 // Import the new app icons
-import iconBlue from "../assets/new-icons/drop-icon-blue.svg";
-import iconPurple from "../assets/new-icons/drop-icon-purple.svg";
-import iconOrange from "../assets/new-icons/drop-icon-orange.svg";
+import iconCozy from "../assets/new-icons/drop-icon-cozy.svg";
+import iconMidnight from "../assets/new-icons/drop-icon-midnight.svg";
+import iconSunset from "../assets/new-icons/drop-icon-sunset.svg";
 
 export default function NewIconOptions() {
-  const { themeColors } = useTheme();
+  const { themeColors, activeTheme, setTheme } = useTheme();
+  const { toast } = useToast();
   
   const appIcons = [
     { 
       id: 1, 
-      src: iconBlue, 
-      title: "Ocean Blue",
-      description: "Clean, modern blue gradient with a crisp white droplet symbol - perfect for representing the app's reflective journaling purpose with a fresh, calming aesthetic." 
+      src: iconCozy,
+      theme: "cozy",
+      title: "Cozy Terracotta",
+      description: "Warm terracotta gradient paired with sage green, featuring a crisp white droplet symbol - creates a cozy, inviting aesthetic that feels like home." 
     },
     { 
       id: 2, 
-      src: iconPurple, 
-      title: "Royal Purple",
-      description: "Rich purple gradient providing a sense of depth and introspection, ideal for a thoughtful journaling app that encourages deeper self-reflection."
+      src: iconMidnight,
+      theme: "midnight",
+      title: "Midnight Periwinkle",
+      description: "Rich periwinkle blue with mauve gradient providing a sense of depth and introspection, ideal for thoughtful journaling in low light conditions."
     },
     { 
       id: 3, 
-      src: iconOrange, 
+      src: iconSunset,
+      theme: "sunset",
       title: "Sunset Orange",
       description: "Warm, energetic orange gradient that conveys enthusiasm and emotional warmth - perfect for an app focused on emotional journaling and connection."
     },
@@ -36,7 +42,14 @@ export default function NewIconOptions() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="border-b">
         <div className="container flex items-center justify-between h-14 px-4 md:px-6">
-          <h1 className="text-xl font-semibold">Drop App Icon Selection</h1>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                ← Back to Home
+              </Button>
+            </Link>
+            <h1 className="text-xl font-semibold">Drop App Icon Selection</h1>
+          </div>
           <div className="ml-auto">
             <ThemeSwitcher />
           </div>
@@ -69,7 +82,19 @@ export default function NewIconOptions() {
                 
                 <CardFooter className="flex flex-col gap-4 pt-4">
                   <CardDescription className="text-sm">{icon.description}</CardDescription>
-                  <Button className="w-full">Select This Icon</Button>
+                  <Button 
+                    className="w-full"
+                    variant={activeTheme === icon.theme ? "default" : "outline"}
+                    onClick={() => {
+                      setTheme(icon.theme as any);
+                      toast({
+                        title: `${icon.title} Selected!`,
+                        description: `App icon and theme color scheme updated to match ${icon.title}.`,
+                      });
+                    }}
+                  >
+                    {activeTheme === icon.theme ? "Currently Selected" : "Select This Icon"}
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
