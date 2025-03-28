@@ -76,7 +76,7 @@ export function registerRoutes(app: Express): Server {
         // If no specific prompt for today, return a default prompt
         return res.json({
           id: 0,
-          text: "How are you feeling today? What's on your mind?",
+          text: "What's something you're looking forward to?",
           activeDate: today.toISOString().split('T')[0],
           isActive: true
         });
@@ -301,7 +301,7 @@ export function registerRoutes(app: Express): Server {
       
       // Create the first AI message based on the journal entry
       const aiResponse = await aiService.generateResponse(
-        `I just wrote in my journal: "${entry.initialResponse}"`,
+        `I just responded to the journal prompt "What's something you're looking forward to?" with this: "${entry.initialResponse}"`,
         []
       );
       
