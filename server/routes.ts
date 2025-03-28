@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import { createServer, type Server } from 'http';
+import path from 'path';
 import { isAuthenticated, setupAuth } from './auth';
 import { storage } from './storage';
 import { aiService } from './ai-service';
@@ -500,14 +501,26 @@ export function registerRoutes(app: Express): Server {
     }
   });
   
-  // Serve static files from the client/dist directory
-  app.use(express.static('client/dist'));
+  // In development, Vite handles the static files
+  // In production, we'd serve from client/dist 
   
-  // Catch-all route to serve the React app for any other route
-  app.get('*', (req: Request, res: Response) => {
+  // Catch-all route for client-side routing
+  // Serve static files for client-side app in any environment
+  // In production, serve from client/dist
+  // In development, connect to the Vite dev server
+  app.use(express.static('client/dist')); 
+  
+  // Serve static files from the server/static directory
+  app.use(express.static(path.join(__dirname, 'static')));
+  
+  // Catch-all route for client-side routing
+  app.get('*', (req: Request, res: Response, next: NextFunction) => {
     // Only handle non-API routes
     if (!req.path.startsWith('/api/')) {
-      res.sendFile('index.html', { root: 'client/dist' });
+      // In development mode, serve our simple welcome page
+      res.sendFile(path.join(__dirname, 'static', 'index.html'));
+    } else {
+      next();
     }
   });
   

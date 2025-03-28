@@ -40,7 +40,7 @@ export default function HomePage() {
                 What's something you're looking forward to?
               </p>
               <Link
-                href="/question"
+                href="/daily-question"
                 className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 <span>Reflect & Write</span>
@@ -89,7 +89,7 @@ export default function HomePage() {
               Begin a new journal entry with today's prompt.
             </p>
             <Link
-              href="/question"
+              href="/daily-question"
               className="text-primary font-medium hover:underline inline-flex items-center"
             >
               Start writing
