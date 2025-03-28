@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- App Icon Background - Gradient background similar to modern app icons -->
+  <rect width="512" height="512" rx="128" fill="url(#paint0_linear)"/>
+  
+  <!-- Cup outline - simplified, bold shape -->
+  <path d="M136 240C136 196.8 171.8 160 215 160H297C340.2 160 376 196.8 376 240V300C376 343.2 340.2 380 297 380H215C171.8 380 136 343.2 136 300V240Z" fill="white"/>
+  
+  <!-- Cup interior - ensuring negative space is handled properly -->
+  <path d="M161 240C161 209.6 185.6 185 216 185H296C326.4 185 351 209.6 351 240V300C351 330.4 326.4 355 296 355H216C185.6 355 161 330.4 161 300V240Z" fill="#26424C"/>
+  
+  <!-- Tea surface -->
+  <path d="M161 260H351V300C351 330.4 326.4 355 296 355H216C185.6 355 161 330.4 161 300V260Z" fill="#E88C59"/>
+  
+  <!-- Handle - simplified, bold -->
+  <path d="M351 250C351 250 391 250 391 290C391 330 351 330 351 330" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  
+  <!-- Steam - modernized, simplified curves that maintain visibility at small sizes -->
+  <path d="M200 130C210 110 240 110 230 140" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <path d="M256 120C266 100 296 100 286 130" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <path d="M310 130C320 110 350 110 340 140" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9BBAD7"/>
+      <stop offset="1" stop-color="#26424C"/>
+    </linearGradient>
+  </defs>
+</svg>
