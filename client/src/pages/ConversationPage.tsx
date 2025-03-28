@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/use-auth';
 import { useToast } from '../hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
-import { useRoute, useLocation } from 'wouter';
+import { useRoute, useLocation, Link } from 'wouter';
 
 export default function ConversationPage() {
   const { user } = useAuth();
@@ -14,6 +14,7 @@ export default function ConversationPage() {
   
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showEndChatModal, setShowEndChatModal] = useState(false);
 
   // Fetch the journal entry and conversation
   const { 
@@ -64,6 +65,7 @@ export default function ConversationPage() {
     },
     onSuccess: (data) => {
       setMessage('');
+      setIsSubmitting(false);
       refetchConversation();
     },
     onError: (error: Error) => {
@@ -84,6 +86,13 @@ export default function ConversationPage() {
     setIsSubmitting(true);
     sendMessageMutation.mutate(message);
   };
+
+  const handleEndChat = () => {
+    setLocation('/journal');
+  };
+
+  // Check if the conversation has reached the message limit
+  const hasReachedMessageLimit = conversationData?.messages && conversationData.messages.length >= 10;
 
   // Loading state
   if (isLoadingEntry || isLoadingConversation) {
@@ -133,7 +142,13 @@ export default function ConversationPage() {
       <header className="py-4 px-6 border-b">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold text-primary">Drop</h1>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-4 items-center">
+            <button
+              onClick={() => setShowEndChatModal(true)}
+              className="px-3 py-1 text-sm bg-muted hover:bg-muted/80 rounded-md"
+            >
+              End Chat
+            </button>
             <span className="text-sm text-muted-foreground">{user?.username}</span>
           </div>
         </div>
@@ -150,7 +165,16 @@ export default function ConversationPage() {
         </div>
         
         <div className="flex-1 flex flex-col">
-          <h2 className="text-xl font-semibold mb-4">Conversation with Claude</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Conversation with Claude</h2>
+            <div className="text-xs text-muted-foreground">
+              {hasReachedMessageLimit ? (
+                <span className="text-amber-500">Message limit reached (10/10)</span>
+              ) : (
+                <span>Messages: {messages.length}/10</span>
+              )}
+            </div>
+          </div>
           
           <div className="flex-1 overflow-y-auto mb-4 space-y-4">
             {messages.map((msg) => (
@@ -169,6 +193,22 @@ export default function ConversationPage() {
                 </div>
               </div>
             ))}
+
+            {hasReachedMessageLimit && (
+              <div className="flex justify-center my-4">
+                <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-md max-w-md text-center">
+                  <p className="text-sm font-medium">
+                    You've reached the message limit for this conversation. 
+                  </p>
+                  <button 
+                    onClick={handleEndChat}
+                    className="mt-2 text-primary text-sm font-medium hover:underline"
+                  >
+                    View your journal entries
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           
           <form onSubmit={handleSubmitMessage} className="mt-auto">
@@ -179,11 +219,11 @@ export default function ConversationPage() {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Type your message..."
                 className="flex-1 p-3 bg-background border rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || hasReachedMessageLimit}
               />
               <button
                 type="submit"
-                disabled={isSubmitting || !message.trim()}
+                disabled={isSubmitting || !message.trim() || hasReachedMessageLimit}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
               >
                 {isSubmitting ? (
@@ -193,9 +233,40 @@ export default function ConversationPage() {
                 )}
               </button>
             </div>
+            {hasReachedMessageLimit && (
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                You've reached the limit of 10 messages for this conversation.
+              </p>
+            )}
           </form>
         </div>
       </main>
+
+      {/* End chat confirmation modal */}
+      {showEndChatModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-2">End this conversation?</h3>
+            <p className="text-muted-foreground mb-4">
+              You'll be redirected to your journal entries, where you can review past reflections.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowEndChatModal(false)}
+                className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEndChat}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                End Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

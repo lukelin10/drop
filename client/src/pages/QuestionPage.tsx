@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/use-auth';
 import { useToast } from '../hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 
 export default function QuestionPage() {
   const { user } = useAuth();
@@ -12,12 +12,14 @@ export default function QuestionPage() {
   const [answer, setAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // In a real implementation, this would come from the API
-  const todaysQuestion = {
-    id: 1,
-    text: "What's something you're looking forward to?",
-    activeDate: new Date().toISOString().split('T')[0]
-  };
+  // Fetch today's prompt
+  const { data: todaysQuestion, isLoading: isLoadingPrompt } = useQuery({
+    queryKey: ['/api/prompts/today'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/prompts/today');
+      return await res.json();
+    }
+  });
 
   // Submit the journal entry
   const submitMutation = useMutation({
@@ -63,17 +65,34 @@ export default function QuestionPage() {
     
     setIsSubmitting(true);
     
-    submitMutation.mutate({
-      promptId: todaysQuestion.id,
-      initialResponse: answer
-    });
+    if (todaysQuestion) {
+      submitMutation.mutate({
+        promptId: todaysQuestion.id,
+        initialResponse: answer
+      });
+    }
   };
+
+  // Loading state for prompt
+  if (isLoadingPrompt) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col justify-center items-center">
+        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-muted-foreground">Loading today's question...</p>
+      </div>
+    );
+  }
+
+  // Default question if API fails
+  const questionText = todaysQuestion?.text || "What's something you're looking forward to?";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="py-4 px-6 border-b">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">Drop</h1>
+          <Link href="/">
+            <h1 className="text-2xl font-bold text-primary cursor-pointer">Drop</h1>
+          </Link>
           <div className="flex gap-2 items-center">
             <span className="text-sm text-muted-foreground">{user?.username}</span>
           </div>
@@ -83,7 +102,7 @@ export default function QuestionPage() {
       <main className="flex-1 container mx-auto py-8 px-4 max-w-2xl">
         <div className="mb-8">
           <p className="text-sm text-muted-foreground mb-1">Today's Question • {new Date().toLocaleDateString()}</p>
-          <h2 className="text-3xl font-semibold">{todaysQuestion.text}</h2>
+          <h2 className="text-3xl font-semibold">{questionText}</h2>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,6 +117,7 @@ export default function QuestionPage() {
               placeholder="Start typing your thoughts..."
               className="w-full min-h-[200px] p-3 bg-background border rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors resize-y"
               disabled={isSubmitting}
+              autoFocus
             />
             
             <div className="flex justify-between items-center mt-4">
