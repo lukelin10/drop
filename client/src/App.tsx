@@ -1,15 +1,16 @@
+import React from 'react';
 import { Route, Switch } from 'wouter';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from './components/ui/toaster';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
-import { AuthProvider } from '@/hooks/use-auth';
-import { ProtectedRoute } from '@/lib/protected-route';
+import { queryClient } from './lib/queryClient';
+import { AuthProvider } from './hooks/use-auth';
+import { ProtectedRoute } from './lib/protected-route';
 
 // Pages
-import HomePage from '@/pages/Home';
-import AuthPage from '@/pages/auth-page';
-import JournalPage from '@/pages/Journal';
-import NotFound from '@/pages/not-found';
+import HomePage from './pages/Home';
+import JournalPage from './pages/Journal';
+import AuthPage from './pages/auth-page';
+import NotFound from './pages/not-found';
 
 function App() {
   return (
