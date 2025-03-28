@@ -36,6 +36,9 @@ import iconCozy1 from "../assets/icon-cozy1.svg";
 import iconCozy2 from "../assets/icon-cozy2.svg";
 import iconCozy3 from "../assets/icon-cozy3.svg";
 
+// Import refined icons
+import iconTeacupRefined from "../assets/icon-teacup-refined.svg";
+
 export default function IconOptions() {
   const { themeColors } = useTheme();
   const [activeTab, setActiveTab] = useState("original");
@@ -75,6 +78,10 @@ export default function IconOptions() {
     { id: 2, src: iconCozy2, description: "Open journal with detailed lined pages and sketches, symbolizing the act of documenting thoughts and creative expression" },
     { id: 3, src: iconCozy3, description: "Crackling fireplace with vibrant, dancing flames and decorative mantel, capturing the essence of warmth and home comfort" }
   ];
+  
+  const refinedIcons = [
+    { id: 1, src: iconTeacupRefined, description: "Modern, simplified teacup with tea bag and elegant steam wisps - inspired by clean UI design principles while maintaining warmth and coziness" }
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -98,12 +105,13 @@ export default function IconOptions() {
           </div>
           
           <Tabs defaultValue="original" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="original">Original Options</TabsTrigger>
               <TabsTrigger value="variations">Option 3 Variations</TabsTrigger>
               <TabsTrigger value="inspiration">Starburst Inspiration</TabsTrigger>
               <TabsTrigger value="hygge">Hygge Cozy</TabsTrigger>
               <TabsTrigger value="focus">Individual Focus</TabsTrigger>
+              <TabsTrigger value="refined">Refined Icons</TabsTrigger>
             </TabsList>
             
             <TabsContent value="original" className="mt-6">
@@ -320,6 +328,54 @@ export default function IconOptions() {
                     <li><strong>Focus 2: The Journal</strong> - Represents the act of documenting thoughts and experiences. The combination of lined pages and sketches illustrates how journaling can be both structured reflection and creative expression.</li>
                     <li><strong>Focus 3: The Fireplace</strong> - Embodies warmth, comfort, and the creation of a safe space for vulnerability and introspection. The dancing flames symbolize the dynamic nature of our inner thoughts.</li>
                     <li><strong>Deliberate Simplicity:</strong> Each icon focuses on a single element rendered in clean, modern, two-dimensional style to maintain visual clarity and emotional resonance.</li>
+                  </ul>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="refined" className="mt-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-xl font-semibold">Refined App Icons</h3>
+                  <p className="text-sm text-muted-foreground">
+                    These refined icons are inspired by clean, modern UI design principles, emphasizing simplicity and clarity while maintaining warmth and user friendliness.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {refinedIcons.map((icon) => (
+                    <Card key={icon.id} className="flex flex-col">
+                      <CardHeader>
+                        <CardTitle>Refined {icon.id}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1 flex items-center justify-center p-6 bg-muted/20 rounded-md">
+                        <img 
+                          src={icon.src} 
+                          alt={`Refined Icon ${icon.id}`} 
+                          className="w-48 h-48 object-contain"
+                        />
+                      </CardContent>
+                      <CardFooter className="flex flex-col items-start gap-4 pt-4">
+                        <CardDescription>{icon.description}</CardDescription>
+                        <Button variant="outline" className="w-full">
+                          Select Refined {icon.id}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+                
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">Design Approach</h4>
+                  <p className="text-sm mb-4">
+                    This refined icon set embraces modern app design principles while maintaining the warmth and coziness of our journaling application:
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    <li><strong>Clean Lines:</strong> Simplified shapes with clear outlines create immediately recognizable, scalable elements that work well at various sizes.</li>
+                    <li><strong>Considered Color:</strong> Deeper, richer colors create better contrast and visibility while maintaining a warm, inviting palette.</li>
+                    <li><strong>Distinctive Details:</strong> The tea bag element adds a unique, memorable detail that helps the icon stand out while reinforcing the coziness theme.</li>
+                    <li><strong>Balanced Simplicity:</strong> Elements are reduced to their most distinctive forms while maintaining enough detail to convey warmth and comfort.</li>
+                    <li><strong>Mobile-Optimized:</strong> The icon is designed with mobile app home screens in mind, with strong silhouettes that remain clear at smaller sizes.</li>
                   </ul>
                 </div>
               </div>
