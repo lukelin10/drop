@@ -5,8 +5,9 @@ import { z } from 'zod';
 // Users
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
+  username: varchar('username', { length: 100 }).notNull().unique(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  password: varchar('password', { length: 255 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
   lastLogin: timestamp('last_login', { withTimezone: true }),
@@ -111,9 +112,25 @@ export const insertTagSchema = createInsertSchema(tags).omit({
 
 export const insertEntryTagSchema = createInsertSchema(entryTags);
 
+// Additional Authentication Schemas
+export const loginSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const registerSchema = loginSchema.extend({
+  email: z.string().email("Please enter a valid email address"),
+  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type NewUser = z.infer<typeof insertUserSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
 
 export type Prompt = typeof prompts.$inferSelect;
 export type NewPrompt = z.infer<typeof insertPromptSchema>;

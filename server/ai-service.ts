@@ -1,7 +1,5 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import 'dotenv/config';
 
-// Define the interface for the AI service
 export interface IAIService {
   // Generate a response based on the conversation history
   generateResponse(prompt: string, conversationHistory: { role: 'user' | 'assistant', content: string }[]): Promise<string>;
@@ -13,144 +11,146 @@ export interface IAIService {
   generateSummary(conversationHistory: { role: 'user' | 'assistant', content: string }[]): Promise<string>;
 }
 
-// Implementation of the AI service using Anthropic Claude
 export class AnthropicService implements IAIService {
   private client: Anthropic;
   private model: string = 'claude-3-opus-20240229'; // Using the most capable model
-  
+
   constructor() {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error('ANTHROPIC_API_KEY is not set in environment variables');
-    }
-    this.client = new Anthropic({ apiKey });
+    this.client = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY || ''
+    });
   }
-  
+
   /**
    * Generate a response from Claude based on a prompt and conversation history
    */
   async generateResponse(prompt: string, conversationHistory: { role: 'user' | 'assistant', content: string }[] = []): Promise<string> {
     try {
-      // Create the messages array in the format that Claude expects
-      const messages = [...conversationHistory.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      })), {
-        role: 'user' as const,
-        content: prompt
-      }];
+      // Format the messages for Claude
+      const messages = [];
       
-      // Call the Claude API
+      // Add conversation history
+      if (conversationHistory.length > 0) {
+        messages.push(...conversationHistory);
+      } else if (prompt) {
+        // If no history but we have a prompt, add it as the first user message
+        messages.push({
+          role: 'user',
+          content: prompt
+        });
+      }
+
+      // If we have no messages at this point, create a default prompt
+      if (messages.length === 0) {
+        messages.push({
+          role: 'user',
+          content: "Hello, I'd like to talk about my journal entry."
+        });
+      }
+
+      // Create the system prompt for Claude
+      const systemPrompt = `You are Drop, an empathetic and insightful AI companion for a journaling app.
+Your purpose is to help the user reflect on their thoughts and feelings in a thoughtful, coach-like manner.
+Respond with warmth, empathy, and occasional gentle humor.
+Ask thoughtful follow-up questions to help users explore their thoughts more deeply.
+Your tone should be like a supportive friend or coach, not a therapist.
+Keep responses concise (3-4 sentences maximum) unless the user asks for more detail.
+Avoid giving direct advice unless explicitly asked, instead focus on asking reflective questions.
+Never mention that you are an AI, Claude, or created by Anthropic.`;
+
+      // Make the API call to Claude
       const response = await this.client.messages.create({
         model: this.model,
+        system: systemPrompt,
+        messages: messages,
         max_tokens: 1024,
-        temperature: 0.7,
-        messages,
-        system: `You are a thoughtful, empathetic, and reflective AI assistant called Drop. 
-Your purpose is to help users reflect on their day and their emotions through journaling.
-You act like a supportive coach or a close friend who asks good questions and offers gentle insights.
-
-Guidelines:
-1. Always respond with empathy, warmth, and thoughtfulness.
-2. Ask open-ended follow-up questions to help users explore their thoughts more deeply.
-3. Occasionally offer insights based on what the user has shared, but prioritize helping them come to their own realizations.
-4. Keep your responses relatively concise (2-3 paragraphs maximum) to maintain a flowing conversation.
-5. Avoid giving direct advice unless specifically asked.
-6. Never judge users for their feelings or experiences.
-7. If appropriate, gently connect current experiences to past ones the user has mentioned.
-8. Use conversational, warm language that feels personal rather than clinical.
-9. Focus on emotional intelligence and helping users gain self-awareness.`
+        temperature: 0.7
       });
-      
-      // Extract the text from the response
-      const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
-      return responseText;
+
+      return response.content[0].text;
     } catch (error) {
       console.error('Error generating AI response:', error);
-      throw new Error('Failed to generate response from AI');
+      return "I'm having trouble connecting at the moment. Could you try again in a moment?";
     }
   }
-  
+
   /**
    * Analyze text to extract relevant tags with confidence scores
    */
   async analyzeTags(text: string): Promise<{ name: string, confidenceScore: number }[]> {
     try {
+      const systemPrompt = `You are an expert at analyzing journal entries and extracting meaningful tags.
+Extract 2-5 relevant tags from the journal entry text, focusing on:
+1. Emotional states (like "happy", "anxious", "peaceful")
+2. Topics discussed (like "work", "family", "health")
+3. Activities mentioned (like "exercise", "travel", "reading")
+
+Return a JSON array of objects with 'name' and 'confidenceScore' (0.0-1.0) properties.
+Keep tag names short (1-2 words maximum) and lowercase.
+Example: [{"name": "anxiety", "confidenceScore": 0.9}, {"name": "work stress", "confidenceScore": 0.75}]`;
+
       const response = await this.client.messages.create({
         model: this.model,
-        max_tokens: 1024,
-        temperature: 0.2,
+        system: systemPrompt,
         messages: [
           {
             role: 'user',
-            content: `Please analyze the following journal entry text and extract the most relevant emotional and thematic tags:
-
-${text}
-
-Provide the output as a JSON array of objects with 'name' (lowercase, single word or short phrase) and 'confidenceScore' (number between 0 and 1) properties ONLY.
-Return ONLY the JSON array with no additional explanation or text.
-Limit to a maximum of 5 tags.
-Focus on emotions, themes, and key activities present in the text.`
+            content: `Analyze this journal entry and extract tags: "${text}"`
           }
-        ]
+        ],
+        max_tokens: 512,
+        temperature: 0.1
       });
+
+      const responseText = response.content[0].text;
       
-      // Extract the text from the response
-      const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
-      
-      // Parse the JSON from the response
-      try {
-        const tags = JSON.parse(responseText.trim());
-        if (Array.isArray(tags)) {
-          return tags;
-        }
-        return [];
-      } catch (parseError) {
-        console.error('Error parsing tags JSON:', parseError);
+      // Extract JSON array from the response
+      const jsonMatch = responseText.match(/\[.*\]/s);
+      if (!jsonMatch) {
         return [];
       }
+      
+      return JSON.parse(jsonMatch[0]);
     } catch (error) {
-      console.error('Error analyzing text for tags:', error);
+      console.error('Error analyzing tags:', error);
       return [];
     }
   }
-  
+
   /**
    * Generate a summary of a conversation
    */
   async generateSummary(conversationHistory: { role: 'user' | 'assistant', content: string }[]): Promise<string> {
     try {
-      // Convert the conversation history to a string
+      const systemPrompt = `You are an expert at summarizing conversations.
+Create a brief (2-3 sentence) summary of the key points and insights from the conversation.
+Focus on the main topics discussed and any important realizations or conclusions.
+The summary should be in third person and objective.`;
+
+      // Format the conversation for Claude
       const conversationText = conversationHistory
-        .map(msg => `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.content}`)
+        .map(msg => `${msg.role.toUpperCase()}: ${msg.content}`)
         .join('\n\n');
-      
+
       const response = await this.client.messages.create({
         model: this.model,
-        max_tokens: 1024,
-        temperature: 0.3,
+        system: systemPrompt,
         messages: [
           {
             role: 'user',
-            content: `Please summarize the following conversation between a user and an AI assistant in 2-3 sentences. 
-Focus on the key insights, emotional themes, and any important reflections that emerged.
-
-${conversationText}
-
-Provide ONLY the summary without any additional explanation or commentary.`
+            content: `Summarize this conversation:\n\n${conversationText}`
           }
-        ]
+        ],
+        max_tokens: 256,
+        temperature: 0.3
       });
-      
-      // Extract the text from the response
-      const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
-      return responseText.trim();
+
+      return response.content[0].text;
     } catch (error) {
-      console.error('Error generating conversation summary:', error);
-      return 'Conversation summary unavailable.';
+      console.error('Error generating summary:', error);
+      return "A conversation about journal reflections.";
     }
   }
 }
 
-// Export a singleton instance
 export const aiService: IAIService = new AnthropicService();
