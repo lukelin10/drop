@@ -1,530 +1,495 @@
-import { Router } from 'express';
+import { Express, Request, Response } from 'express';
+import { createServer, type Server } from 'http';
+import { isAuthenticated, setupAuth } from './auth';
 import { storage } from './storage';
-import { 
-  insertUserSchema, 
-  insertJournalEntrySchema, 
-  insertConversationSchema, 
-  insertMessageSchema,
-  insertTagSchema
-} from '../shared/schema';
+import { aiService } from './ai-service';
 import { z } from 'zod';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import {
+  insertJournalEntrySchema,
+  insertConversationSchema,
+  insertMessageSchema,
+  insertTagSchema,
+  insertEntryTagSchema
+} from '../shared/schema';
 
-const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_change_in_production';
-
-// Authentication middleware
-const authenticate = async (req: any, res: any, next: any) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
-    
-    const user = await storage.getUserById(decoded.userId);
-    if (!user) {
-      return res.status(401).json({ error: 'User not found' });
-    }
-    
-    req.user = user;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-};
-
-// Auth Routes
-router.post('/auth/register', async (req, res) => {
-  try {
-    const registerSchema = insertUserSchema.extend({
-      password: z.string().min(8),
-    }).omit({ passwordHash: true });
-    
-    const userData = registerSchema.parse(req.body);
-    
-    // Check if user already exists
-    const existingUser = await storage.getUserByEmail(userData.email);
-    if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-    
-    // Hash password
-    const passwordHash = await bcrypt.hash(userData.password, 10);
-    
-    // Create user
-    const newUser = await storage.createUser({
-      ...userData,
-      passwordHash,
-    });
-    
-    // Generate JWT token
-    const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, { expiresIn: '7d' });
-    
-    res.status(201).json({
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        preferredTheme: newUser.preferredTheme,
-      },
-      token,
-    });
-  } catch (error) {
-    console.error('Register error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-router.post('/auth/login', async (req, res) => {
-  try {
-    const loginSchema = z.object({
-      email: z.string().email(),
-      password: z.string(),
-    });
-    
-    const credentials = loginSchema.parse(req.body);
-    
-    // Find user
-    const user = await storage.getUserByEmail(credentials.email);
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    
-    // Update last login
-    await storage.updateUser(user.id, { lastLogin: new Date() });
-    
-    // Generate JWT token
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
-    
-    res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        preferredTheme: user.preferredTheme,
-      },
-      token,
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// User Routes
-router.get('/users/me', authenticate, async (req: any, res) => {
-  try {
+export function registerRoutes(app: Express): Server {
+  // Setup authentication
+  setupAuth(app);
+  
+  const httpServer = createServer(app);
+  
+  // Health check endpoint
+  app.get('/api/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'ok' });
+  });
+  
+  // User profile endpoint
+  app.get('/api/users/me', isAuthenticated, async (req: Request, res: Response) => {
     const user = req.user;
-    res.json({
-      id: user.id,
-      email: user.email,
-      preferredTheme: user.preferredTheme,
-      notificationPreferences: JSON.parse(user.notificationPreferences),
-      createdAt: user.createdAt,
-    });
-  } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-router.patch('/users/me', authenticate, async (req: any, res) => {
-  try {
-    const updateSchema = z.object({
+    if (!user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    return res.json(user);
+  });
+  
+  // Update user profile
+  app.patch('/api/users/me', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    // Create a schema for updating user profile
+    const updateUserSchema = z.object({
       preferredTheme: z.enum(['cozy', 'midnight', 'sunset']).optional(),
-      notificationPreferences: z.record(z.boolean()).optional(),
+      notificationPreferences: z.string().optional()
     });
     
-    const updateData = updateSchema.parse(req.body);
-    let dataToUpdate: any = {};
-    
-    if (updateData.preferredTheme) {
-      dataToUpdate.preferredTheme = updateData.preferredTheme;
-    }
-    
-    if (updateData.notificationPreferences) {
-      dataToUpdate.notificationPreferences = JSON.stringify(updateData.notificationPreferences);
-    }
-    
-    const updatedUser = await storage.updateUser(req.user.id, dataToUpdate);
-    
-    res.json({
-      id: updatedUser!.id,
-      email: updatedUser!.email,
-      preferredTheme: updatedUser!.preferredTheme,
-      notificationPreferences: JSON.parse(updatedUser!.notificationPreferences),
-      createdAt: updatedUser!.createdAt,
-    });
-  } catch (error) {
-    console.error('Update user error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Prompts Routes
-router.get('/prompts/today', authenticate, async (req, res) => {
-  try {
-    const today = new Date();
-    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    
-    let prompt = await storage.getPromptForDate(todayDateOnly);
-    
-    // If no prompt for today, get the latest active prompt
-    if (!prompt) {
-      const activePrompts = await storage.getActivePrompts();
-      prompt = activePrompts.sort((a, b) => 
-        b.activeDate.getTime() - a.activeDate.getTime()
-      )[0] || null;
-    }
-    
-    if (!prompt) {
-      return res.status(404).json({ error: 'No prompt available for today' });
-    }
-    
-    res.json(prompt);
-  } catch (error) {
-    console.error('Get today prompt error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Journal Entries Routes
-router.post('/journal/entries', authenticate, async (req: any, res) => {
-  try {
-    const entrySchema = insertJournalEntrySchema.extend({
-      userId: z.number().optional(), // We'll set this from the authenticated user
-    });
-    
-    const entryData = entrySchema.parse(req.body);
-    
-    // Set the user ID from the authenticated user
-    entryData.userId = req.user.id;
-    
-    // Ensure entry date is today if not specified
-    if (!entryData.entryDate) {
-      const today = new Date();
-      entryData.entryDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    }
-    
-    // Check if user already has an entry for this date
-    const existingEntry = await storage.getJournalEntryByUserAndDate(
-      req.user.id,
-      entryData.entryDate
-    );
-    
-    if (existingEntry) {
-      return res.status(400).json({ error: 'You already have a journal entry for this date' });
-    }
-    
-    const newEntry = await storage.createJournalEntry(entryData);
-    
-    res.status(201).json(newEntry);
-  } catch (error) {
-    console.error('Create journal entry error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-router.get('/journal/entries', authenticate, async (req: any, res) => {
-  try {
-    const entries = await storage.getJournalEntriesByUserId(req.user.id);
-    res.json(entries);
-  } catch (error) {
-    console.error('Get journal entries error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-router.get('/journal/entries/:id', authenticate, async (req: any, res) => {
-  try {
-    const entryId = parseInt(req.params.id);
-    const entry = await storage.getJournalEntryById(entryId);
-    
-    if (!entry) {
-      return res.status(404).json({ error: 'Journal entry not found' });
-    }
-    
-    // Ensure user can only access their own entries
-    if (entry.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Unauthorized access to this entry' });
-    }
-    
-    // Get tags for the entry
-    const tags = await storage.getTagsByJournalEntryId(entryId);
-    
-    res.json({
-      ...entry,
-      tags,
-    });
-  } catch (error) {
-    console.error('Get journal entry error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-router.patch('/journal/entries/:id', authenticate, async (req: any, res) => {
-  try {
-    const entryId = parseInt(req.params.id);
-    const entry = await storage.getJournalEntryById(entryId);
-    
-    if (!entry) {
-      return res.status(404).json({ error: 'Journal entry not found' });
-    }
-    
-    // Ensure user can only update their own entries
-    if (entry.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Unauthorized access to this entry' });
-    }
-    
-    const updateSchema = z.object({
-      moodScore: z.number().min(1).max(10).optional(),
-      isFavorite: z.boolean().optional(),
-    });
-    
-    const updateData = updateSchema.parse(req.body);
-    const updatedEntry = await storage.updateJournalEntry(entryId, updateData);
-    
-    res.json(updatedEntry);
-  } catch (error) {
-    console.error('Update journal entry error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Conversations Routes
-router.post('/journal/entries/:entryId/conversations', authenticate, async (req: any, res) => {
-  try {
-    const entryId = parseInt(req.params.entryId);
-    const entry = await storage.getJournalEntryById(entryId);
-    
-    if (!entry) {
-      return res.status(404).json({ error: 'Journal entry not found' });
-    }
-    
-    // Ensure user can only create conversations for their own entries
-    if (entry.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Unauthorized access to this entry' });
-    }
-    
-    // Check if a conversation already exists for this entry
-    const existingConversation = await storage.getConversationByJournalEntryId(entryId);
-    if (existingConversation) {
-      return res.status(400).json({ error: 'A conversation already exists for this entry' });
-    }
-    
-    const conversationData: any = {
-      journalEntryId: entryId,
-    };
-    
-    const newConversation = await storage.createConversation(conversationData);
-    
-    // Add the initial message from the assistant
-    const initialMessage = {
-      conversationId: newConversation.id,
-      senderType: 'assistant',
-      content: `Let's reflect on your response: "${entry.initialResponse}"`,
-      sequenceOrder: 1,
-    };
-    
-    await storage.createMessage(initialMessage);
-    
-    res.status(201).json(newConversation);
-  } catch (error) {
-    console.error('Create conversation error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-router.get('/journal/entries/:entryId/conversations', authenticate, async (req: any, res) => {
-  try {
-    const entryId = parseInt(req.params.entryId);
-    const entry = await storage.getJournalEntryById(entryId);
-    
-    if (!entry) {
-      return res.status(404).json({ error: 'Journal entry not found' });
-    }
-    
-    // Ensure user can only access conversations for their own entries
-    if (entry.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Unauthorized access to this entry' });
-    }
-    
-    const conversation = await storage.getConversationByJournalEntryId(entryId);
-    if (!conversation) {
-      return res.status(404).json({ error: 'Conversation not found for this entry' });
-    }
-    
-    const messages = await storage.getMessagesByConversationId(conversation.id);
-    
-    res.json({
-      ...conversation,
-      messages,
-    });
-  } catch (error) {
-    console.error('Get conversation error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Messages Routes
-router.post('/journal/entries/:entryId/conversations/messages', authenticate, async (req: any, res) => {
-  try {
-    const entryId = parseInt(req.params.entryId);
-    const entry = await storage.getJournalEntryById(entryId);
-    
-    if (!entry) {
-      return res.status(404).json({ error: 'Journal entry not found' });
-    }
-    
-    // Ensure user can only add messages to their own entries' conversations
-    if (entry.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Unauthorized access to this entry' });
-    }
-    
-    const conversation = await storage.getConversationByJournalEntryId(entryId);
-    if (!conversation) {
-      return res.status(404).json({ error: 'Conversation not found for this entry' });
-    }
-    
-    const messageSchema = insertMessageSchema.extend({
-      conversationId: z.number().optional(), // We'll set this from the conversation
-      senderType: z.enum(['user', 'assistant']),
-      sequenceOrder: z.number().optional(), // We'll calculate this
-    });
-    
-    const messageData = messageSchema.parse(req.body);
-    
-    // Set the conversation ID
-    messageData.conversationId = conversation.id;
-    
-    // Get the current highest sequence order
-    const existingMessages = await storage.getMessagesByConversationId(conversation.id);
-    const highestSequence = existingMessages.reduce(
-      (max, msg) => Math.max(max, msg.sequenceOrder),
-      0
-    );
-    
-    // Set the sequence order to the next available
-    messageData.sequenceOrder = highestSequence + 1;
-    
-    const newMessage = await storage.createMessage(messageData);
-    
-    // If the message is from the user, we need to get an AI response
-    if (messageData.senderType === 'user') {
-      // Note: In a real implementation, we would call the Anthropic API here
-      // For now, we'll add a placeholder AI response
-      const aiResponseData = {
-        conversationId: conversation.id,
-        senderType: 'assistant',
-        content: `I'm here to help you reflect on your thoughts. Tell me more about how you're feeling.`,
-        sequenceOrder: highestSequence + 2,
-      };
+    try {
+      const validatedData = updateUserSchema.parse(req.body);
       
-      await storage.createMessage(aiResponseData);
+      // Update the user
+      const updatedUser = await storage.updateUser(req.user.id, validatedData);
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Remove passwordHash from the response
+      const { passwordHash, ...userWithoutPassword } = updatedUser;
+      return res.json(userWithoutPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Validation error', errors: error.format() });
+      }
+      console.error('Error updating user:', error);
+      return res.status(500).json({ message: 'Error updating user' });
+    }
+  });
+  
+  // Get today's prompt
+  app.get('/api/prompts/today', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const today = new Date();
+      const prompt = await storage.getPromptForDate(today);
+      
+      if (!prompt) {
+        // If no specific prompt for today, return a default prompt
+        return res.json({
+          id: 0,
+          text: "How are you feeling today? What's on your mind?",
+          activeDate: today.toISOString().split('T')[0],
+          isActive: true
+        });
+      }
+      
+      return res.json(prompt);
+    } catch (error) {
+      console.error('Error fetching today\'s prompt:', error);
+      return res.status(500).json({ message: 'Error fetching prompt' });
+    }
+  });
+  
+  // Create a journal entry
+  app.post('/api/journal/entries', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
     }
     
-    // Return the updated messages
-    const updatedMessages = await storage.getMessagesByConversationId(conversation.id);
-    
-    res.status(201).json(updatedMessages);
-  } catch (error) {
-    console.error('Add message error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Tags Routes
-router.get('/tags', authenticate, async (req, res) => {
-  try {
-    const tags = await storage.getAllTags();
-    res.json(tags);
-  } catch (error) {
-    console.error('Get tags error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-router.post('/journal/entries/:entryId/tags', authenticate, async (req: any, res) => {
-  try {
-    const entryId = parseInt(req.params.entryId);
-    const entry = await storage.getJournalEntryById(entryId);
-    
-    if (!entry) {
-      return res.status(404).json({ error: 'Journal entry not found' });
-    }
-    
-    // Ensure user can only add tags to their own entries
-    if (entry.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Unauthorized access to this entry' });
-    }
-    
-    const tagSchema = z.object({
-      name: z.string().min(1).max(100),
-      source: z.enum(['user', 'system', 'ai']).default('user'),
-      confidenceScore: z.number().min(0).max(1).optional(),
-    });
-    
-    const tagData = tagSchema.parse(req.body);
-    
-    // Check if tag already exists
-    let tag = await storage.getTagByName(tagData.name);
-    
-    // If not, create it
-    if (!tag) {
-      tag = await storage.createTag({
-        name: tagData.name,
-        isSystem: tagData.source === 'system',
+    try {
+      // Validate the request body
+      const validatedData = insertJournalEntrySchema.parse({
+        ...req.body,
+        userId: req.user.id,
+        entryDate: req.body.entryDate || new Date().toISOString().split('T')[0]
       });
+      
+      // Check if the user already has an entry for this date
+      const existingEntry = await storage.getJournalEntryByUserAndDate(
+        req.user.id,
+        new Date(validatedData.entryDate)
+      );
+      
+      if (existingEntry) {
+        return res.status(409).json({ 
+          message: 'Entry already exists for this date',
+          entry: existingEntry
+        });
+      }
+      
+      // Create the entry
+      const newEntry = await storage.createJournalEntry(validatedData);
+      
+      // Analyze the entry text for tags
+      const extractedTags = await aiService.analyzeTags(validatedData.initialResponse);
+      
+      // Create tags and associate them with the entry
+      for (const tagData of extractedTags) {
+        // Check if the tag already exists
+        let tag = await storage.getTagByName(tagData.name);
+        
+        // If not, create it
+        if (!tag) {
+          tag = await storage.createTag({
+            name: tagData.name,
+            description: '',
+            isSystem: true
+          });
+        }
+        
+        // Associate the tag with the entry
+        await storage.addTagToEntry({
+          journalEntryId: newEntry.id,
+          tagId: tag.id,
+          source: 'ai',
+          confidenceScore: tagData.confidenceScore
+        });
+      }
+      
+      return res.status(201).json(newEntry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Validation error', errors: error.format() });
+      }
+      console.error('Error creating journal entry:', error);
+      return res.status(500).json({ message: 'Error creating journal entry' });
+    }
+  });
+  
+  // Get all journal entries for the authenticated user
+  app.get('/api/journal/entries', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
     }
     
-    // Add the tag to the entry
-    await storage.addTagToEntry({
-      journalEntryId: entryId,
-      tagId: tag.id,
-      source: tagData.source,
-      confidenceScore: tagData.confidenceScore,
-    });
-    
-    // Get all tags for the entry
-    const tags = await storage.getTagsByJournalEntryId(entryId);
-    
-    res.status(201).json(tags);
-  } catch (error) {
-    console.error('Add tag error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+    try {
+      const entries = await storage.getJournalEntriesByUserId(req.user.id);
+      return res.json(entries);
+    } catch (error) {
+      console.error('Error fetching journal entries:', error);
+      return res.status(500).json({ message: 'Error fetching journal entries' });
     }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-export default router;
+  });
+  
+  // Get a specific journal entry
+  app.get('/api/journal/entries/:id', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    try {
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Journal entry not found' });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      return res.json(entry);
+    } catch (error) {
+      console.error('Error fetching journal entry:', error);
+      return res.status(500).json({ message: 'Error fetching journal entry' });
+    }
+  });
+  
+  // Update a journal entry
+  app.patch('/api/journal/entries/:id', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    try {
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Journal entry not found' });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Define the schema for updating a journal entry
+      const updateEntrySchema = z.object({
+        initialResponse: z.string().optional(),
+        moodScore: z.number().min(1).max(10).optional(),
+        isFavorite: z.boolean().optional()
+      });
+      
+      // Validate the request body
+      const validatedData = updateEntrySchema.parse(req.body);
+      
+      // Update the entry
+      const updatedEntry = await storage.updateJournalEntry(entryId, validatedData);
+      
+      // If the content was updated, reanalyze tags
+      if (validatedData.initialResponse) {
+        const extractedTags = await aiService.analyzeTags(validatedData.initialResponse);
+        
+        // Create tags and associate them with the entry
+        for (const tagData of extractedTags) {
+          // Check if the tag already exists
+          let tag = await storage.getTagByName(tagData.name);
+          
+          // If not, create it
+          if (!tag) {
+            tag = await storage.createTag({
+              name: tagData.name,
+              description: '',
+              isSystem: true
+            });
+          }
+          
+          // Associate the tag with the entry
+          await storage.addTagToEntry({
+            journalEntryId: entryId,
+            tagId: tag.id,
+            source: 'ai',
+            confidenceScore: tagData.confidenceScore
+          });
+        }
+      }
+      
+      return res.json(updatedEntry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Validation error', errors: error.format() });
+      }
+      console.error('Error updating journal entry:', error);
+      return res.status(500).json({ message: 'Error updating journal entry' });
+    }
+  });
+  
+  // Create a conversation for a journal entry
+  app.post('/api/journal/entries/:entryId/conversations', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    try {
+      const entryId = parseInt(req.params.entryId);
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Journal entry not found' });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Check if a conversation already exists for this entry
+      const existingConversation = await storage.getConversationByJournalEntryId(entryId);
+      if (existingConversation) {
+        return res.status(409).json({ 
+          message: 'Conversation already exists for this entry',
+          conversation: existingConversation
+        });
+      }
+      
+      // Create the conversation
+      const newConversation = await storage.createConversation({
+        journalEntryId: entryId
+      });
+      
+      // Create the first AI message based on the journal entry
+      const aiResponse = await aiService.generateResponse(
+        `I just wrote in my journal: "${entry.initialResponse}"`,
+        []
+      );
+      
+      // Save the AI message
+      await storage.createMessage({
+        conversationId: newConversation.id,
+        content: aiResponse,
+        role: 'assistant',
+        sequenceOrder: 1
+      });
+      
+      return res.status(201).json(newConversation);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      return res.status(500).json({ message: 'Error creating conversation' });
+    }
+  });
+  
+  // Get a conversation for a journal entry
+  app.get('/api/journal/entries/:entryId/conversations', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    try {
+      const entryId = parseInt(req.params.entryId);
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Journal entry not found' });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Get the conversation
+      const conversation = await storage.getConversationByJournalEntryId(entryId);
+      if (!conversation) {
+        return res.status(404).json({ message: 'Conversation not found' });
+      }
+      
+      // Get the messages for the conversation
+      const messages = await storage.getMessagesByConversationId(conversation.id);
+      
+      return res.json({
+        conversation,
+        messages
+      });
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      return res.status(500).json({ message: 'Error fetching conversation' });
+    }
+  });
+  
+  // Add a message to a conversation
+  app.post('/api/journal/entries/:entryId/conversations/messages', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    try {
+      const entryId = parseInt(req.params.entryId);
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Journal entry not found' });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Get the conversation
+      const conversation = await storage.getConversationByJournalEntryId(entryId);
+      if (!conversation) {
+        return res.status(404).json({ message: 'Conversation not found' });
+      }
+      
+      // Validate the request body
+      const messageSchema = z.object({
+        content: z.string().min(1),
+      });
+      
+      const validatedData = messageSchema.parse(req.body);
+      
+      // Get the current messages for the conversation
+      const messages = await storage.getMessagesByConversationId(conversation.id);
+      
+      // Create the user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: validatedData.content,
+        role: 'user',
+        sequenceOrder: messages.length + 1
+      });
+      
+      // Format the conversation history for the AI
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content
+      }));
+      
+      // Add the new user message
+      conversationHistory.push({
+        role: 'user',
+        content: validatedData.content
+      });
+      
+      // Generate the AI response
+      const aiResponse = await aiService.generateResponse('', conversationHistory);
+      
+      // Create the AI message
+      const aiMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: aiResponse,
+        role: 'assistant',
+        sequenceOrder: messages.length + 2
+      });
+      
+      // Check if we need to update the conversation summary
+      if (messages.length >= 10 && !conversation.summary) {
+        const summary = await aiService.generateSummary(conversationHistory.concat([{
+          role: 'assistant',
+          content: aiResponse
+        }]));
+        
+        await storage.updateConversation(conversation.id, { summary });
+      }
+      
+      return res.status(201).json({
+        userMessage,
+        aiMessage
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Validation error', errors: error.format() });
+      }
+      console.error('Error creating message:', error);
+      return res.status(500).json({ message: 'Error creating message' });
+    }
+  });
+  
+  // Get all tags
+  app.get('/api/tags', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    try {
+      const tags = await storage.getAllTags();
+      return res.json(tags);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      return res.status(500).json({ message: 'Error fetching tags' });
+    }
+  });
+  
+  // Get journal entries by tag
+  app.get('/api/tags/:tagId/entries', isAuthenticated, async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    try {
+      const tagId = parseInt(req.params.tagId);
+      const tag = await storage.getTagById(tagId);
+      
+      if (!tag) {
+        return res.status(404).json({ message: 'Tag not found' });
+      }
+      
+      const entries = await storage.getJournalEntriesByTagId(tagId);
+      
+      // Filter entries to only include those belonging to the authenticated user
+      const userEntries = entries.filter(entry => entry.userId === req.user!.id);
+      
+      return res.json({
+        tag,
+        entries: userEntries
+      });
+    } catch (error) {
+      console.error('Error fetching entries by tag:', error);
+      return res.status(500).json({ message: 'Error fetching entries' });
+    }
+  });
+  
+  return httpServer;
+}
