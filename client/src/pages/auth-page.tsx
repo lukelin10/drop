@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/use-auth';
 import { Redirect } from 'wouter';
 import { useForm } from 'react-hook-form';
@@ -24,7 +24,17 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
+  console.log('[AuthPage] Component rendering');
+
+  useEffect(() => {
+    console.log('[AuthPage] Component mounted');
+    console.log('[AuthPage] Current location:', window.location.pathname);
+    return () => console.log('[AuthPage] Component unmounted');
+  }, []);
+
   const { user, loginMutation, registerMutation, googleLoginMutation, isCheckingRedirect } = useAuth();
+  console.log('[AuthPage] Auth state:', { user, isLoading: loginMutation.isPending, isCheckingRedirect });
+  
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   
   const loginForm = useForm<LoginFormValues>({

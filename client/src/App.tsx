@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Route, Switch } from 'wouter';
 import { Toaster } from './components/ui/toaster';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -15,6 +15,11 @@ import ConversationPage from './pages/ConversationPage';
 import NotFound from './pages/not-found';
 
 function App() {
+  useEffect(() => {
+    console.log('[App] Component mounted');
+    return () => console.log('[App] Component unmounted');
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -30,33 +35,51 @@ function App() {
 }
 
 function Router() {
+  useEffect(() => {
+    console.log('[Router] Component mounted');
+    console.log('[Router] Current location:', window.location.pathname);
+    return () => console.log('[Router] Component unmounted');
+  }, []);
+
+  console.log('[Router] Rendering router component');
+  
   return (
     <Switch>
       <Route path="/auth">
-        <AuthPage />
+        {() => {
+          console.log('[Router] /auth route matched');
+          return <AuthPage />;
+        }}
       </Route>
       <Route path="/">
-        {() => (
-          <ProtectedRoute path="/" component={HomePage} />
-        )}
+        {() => {
+          console.log('[Router] / route matched');
+          return <ProtectedRoute path="/" component={HomePage} />;
+        }}
       </Route>
       <Route path="/journal">
-        {() => (
-          <ProtectedRoute path="/journal" component={JournalPage} />
-        )}
+        {() => {
+          console.log('[Router] /journal route matched');
+          return <ProtectedRoute path="/journal" component={JournalPage} />;
+        }}
       </Route>
       <Route path="/daily-question">
-        {() => (
-          <ProtectedRoute path="/daily-question" component={QuestionPage} />
-        )}
+        {() => {
+          console.log('[Router] /daily-question route matched');
+          return <ProtectedRoute path="/daily-question" component={QuestionPage} />;
+        }}
       </Route>
       <Route path="/conversation/:id">
-        {(params) => (
-          <ProtectedRoute path={`/conversation/${params.id}`} component={ConversationPage} />
-        )}
+        {(params) => {
+          console.log('[Router] /conversation/:id route matched', params);
+          return <ProtectedRoute path={`/conversation/${params.id}`} component={ConversationPage} />;
+        }}
       </Route>
       <Route>
-        <NotFound />
+        {() => {
+          console.log('[Router] Not found route matched');
+          return <NotFound />;
+        }}
       </Route>
     </Switch>
   );
