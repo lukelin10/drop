@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drop Journal</title>
+  
+  <!-- Preload React from CDN for faster loading -->
+  <link rel="preload" href="https://unpkg.com/react@18/umd/react.production.min.js" as="script" crossorigin>
+  <link rel="preload" href="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" as="script" crossorigin>
+  
+  <!-- Load React from CDN - these are the production versions -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Basic styles that work with our bundled CSS -->
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f6f9fc;
+    }
+    
+    #app-root {
+      min-height: 100vh;
+    }
+    
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #5046e5;
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(80, 70, 229, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #5046e5;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-root">
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <h2>Loading Drop Journal...</h2>
+    </div>
+  </div>
+  
+  <!-- Our bundled app will be loaded here -->
+  <script>
+    // Dynamically load our bundled application
+    window.addEventListener('DOMContentLoaded', () => {
+      // Load the main bundled JavaScript
+      const script = document.createElement('script');
+      script.src = '/assets/index.js'; // This path will be correct after building
+      script.type = 'module';
+      script.onerror = () => {
+        console.error('Failed to load the bundled application!');
+        document.getElementById('app-root').innerHTML = `
+          <div style="padding: 20px; text-align: center;">
+            <h2>Application Error</h2>
+            <p>Failed to load the application. Please try again later or contact support.</p>
+            <p>You can try our <a href="/direct.html">simplified version</a> instead.</p>
+          </div>
+        `;
+      };
+      document.body.appendChild(script);
+      
+      // Also load the CSS
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/assets/index.css';
+      document.head.appendChild(link);
+    });
+  </script>
+</body>
+</html>
