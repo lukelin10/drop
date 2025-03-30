@@ -1,9 +1,23 @@
 import React from 'react';
 import { useAuth } from '../hooks/use-auth';
 import { Link } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '../lib/queryClient';
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
+  
+  // Fetch today's prompt
+  const { data: todaysQuestion, isLoading: isLoadingPrompt } = useQuery({
+    queryKey: ['/api/prompts/today'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/prompts/today');
+      return await res.json();
+    }
+  });
+
+  // Default question if API fails or is loading
+  const questionText = todaysQuestion?.text || "What's something you're looking forward to?";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -36,9 +50,16 @@ export default function HomePage() {
 
             <div className="bg-primary/5 border border-primary/20 p-6 rounded-lg mb-6">
               <h3 className="text-xl font-medium mb-2">Today's Question</h3>
-              <p className="text-lg mb-4">
-                What's something you're looking forward to?
-              </p>
+              {isLoadingPrompt ? (
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-muted-foreground">Loading question...</p>
+                </div>
+              ) : (
+                <p className="text-lg mb-4">
+                  {questionText}
+                </p>
+              )}
               <Link
                 href="/daily-question"
                 className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
