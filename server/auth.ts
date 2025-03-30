@@ -165,6 +165,57 @@ export function setupAuth(app: Express) {
     });
   });
 
+  app.post("/api/google-auth", async (req: Request, res: Response) => {
+    try {
+      const { email, displayName, uid, photoURL } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Check if user exists
+      let user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // If user doesn't exist, create a new user
+        const username = displayName || email.split('@')[0];
+        // Generate a secure random password for the user (they'll authenticate via Google)
+        const password = randomBytes(16).toString('hex');
+        const hashedPassword = await hashPassword(password);
+        
+        user = await storage.createUser({
+          username,
+          email,
+          password: hashedPassword,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastLogin: new Date(),
+          preferredTheme: null,
+          notificationPreferences: null
+        });
+      } else {
+        // Update last login time
+        user = await storage.updateUser(user.id, { 
+          lastLogin: new Date(),
+          updatedAt: new Date()
+        });
+      }
+
+      // Log the user in
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to log in" });
+        }
+        // Return user data (excluding password)
+        const { password, ...userWithoutPassword } = user;
+        return res.json(userWithoutPassword);
+      });
+    } catch (error) {
+      console.error("Google auth error:", error);
+      res.status(500).json({ message: "Authentication failed" });
+    }
+  });
+
   app.get("/api/user", (req: Request, res: Response) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
