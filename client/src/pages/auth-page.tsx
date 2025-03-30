@@ -4,6 +4,7 @@ import { Redirect } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 
 // Form schemas
 const loginSchema = z.object({
@@ -23,7 +24,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation, registerMutation, googleLoginMutation, isCheckingRedirect } = useAuth();
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   
   const loginForm = useForm<LoginFormValues>({
@@ -60,162 +61,221 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Form Section */}
-      <div className="w-full lg:w-1/2 p-8 flex items-center justify-center">
+      <div className="w-full lg:w-1/2 p-8 flex items-center justify-center bg-background">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary mb-2">Drop</h1>
+            <h1 className="text-4xl font-bold text-primary mb-2">Drop</h1>
             <p className="text-muted-foreground">Your daily reflection journal</p>
           </div>
           
-          <div className="bg-card rounded-lg shadow-lg p-8">
-            <div className="flex mb-6">
-              <button
-                className={`flex-1 py-2 text-center ${authMode === 'login' ? 'text-primary font-medium border-b-2 border-primary' : 'text-muted-foreground'}`}
-                onClick={() => setAuthMode('login')}
-              >
-                Log In
-              </button>
-              <button
-                className={`flex-1 py-2 text-center ${authMode === 'register' ? 'text-primary font-medium border-b-2 border-primary' : 'text-muted-foreground'}`}
-                onClick={() => setAuthMode('register')}
-              >
-                Register
-              </button>
+          {authMode === 'login' ? (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-primary">Log in</h2>
+              
+              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                <div>
+                  <input
+                    id="login-username"
+                    type="text"
+                    placeholder="Email address"
+                    {...loginForm.register('username')}
+                    className="w-full p-4 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-card"
+                  />
+                  {loginForm.formState.errors.username && (
+                    <p className="text-destructive text-sm mt-1">
+                      {loginForm.formState.errors.username.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <input
+                    id="login-password"
+                    type="password"
+                    placeholder="Password"
+                    {...loginForm.register('password')}
+                    className="w-full p-4 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-card"
+                  />
+                  {loginForm.formState.errors.password && (
+                    <p className="text-destructive text-sm mt-1">
+                      {loginForm.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="text-right">
+                  <a href="#" className="text-primary text-sm hover:underline">
+                    Forgot password?
+                  </a>
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={loginMutation.isPending}
+                  className="w-full p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 text-lg font-medium"
+                >
+                  {loginMutation.isPending ? 'Logging in...' : 'Log in'}
+                </button>
+                
+                <div className="flex items-center my-6">
+                  <div className="flex-grow h-px bg-border"></div>
+                  <div className="px-4 text-muted-foreground">or</div>
+                  <div className="flex-grow h-px bg-border"></div>
+                </div>
+                
+                <button
+                  type="button"
+                  className="w-full p-4 bg-card border border-border text-foreground rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center justify-center space-x-2"
+                  onClick={() => googleLoginMutation.mutate()}
+                  disabled={googleLoginMutation.isPending || isCheckingRedirect}
+                >
+                  {(googleLoginMutation.isPending || isCheckingRedirect) ? (
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  ) : (
+                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                      <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                  )}
+                  <span>{(googleLoginMutation.isPending || isCheckingRedirect) ? 'Connecting...' : 'Log in with Google'}</span>
+                </button>
+                
+                <div className="text-center mt-6">
+                  <p className="text-muted-foreground text-sm">
+                    Don't have an account?{" "}
+                    <button 
+                      type="button"
+                      onClick={() => setAuthMode('register')} 
+                      className="text-primary hover:underline"
+                    >
+                      Create a new account
+                    </button>
+                  </p>
+                </div>
+              </form>
             </div>
-            
-            {authMode === 'login' ? (
-              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="login-username" className="block text-sm font-medium mb-1">
-                      Username
-                    </label>
-                    <input
-                      id="login-username"
-                      type="text"
-                      {...loginForm.register('username')}
-                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {loginForm.formState.errors.username && (
-                      <p className="text-destructive text-sm mt-1">
-                        {loginForm.formState.errors.username.message}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="login-password" className="block text-sm font-medium mb-1">
-                      Password
-                    </label>
-                    <input
-                      id="login-password"
-                      type="password"
-                      {...loginForm.register('password')}
-                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {loginForm.formState.errors.password && (
-                      <p className="text-destructive text-sm mt-1">
-                        {loginForm.formState.errors.password.message}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={loginMutation.isPending}
-                    className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
-                  >
-                    {loginMutation.isPending ? 'Logging in...' : 'Log In'}
-                  </button>
+          ) : (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-primary">Create an account</h2>
+              
+              <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                <div>
+                  <input
+                    id="register-username"
+                    type="text"
+                    placeholder="Username"
+                    {...registerForm.register('username')}
+                    className="w-full p-4 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-card"
+                  />
+                  {registerForm.formState.errors.username && (
+                    <p className="text-destructive text-sm mt-1">
+                      {registerForm.formState.errors.username.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <input
+                    id="register-email"
+                    type="email"
+                    placeholder="Email address"
+                    {...registerForm.register('email')}
+                    className="w-full p-4 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-card"
+                  />
+                  {registerForm.formState.errors.email && (
+                    <p className="text-destructive text-sm mt-1">
+                      {registerForm.formState.errors.email.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <input
+                    id="register-password"
+                    type="password"
+                    placeholder="Password"
+                    {...registerForm.register('password')}
+                    className="w-full p-4 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-card"
+                  />
+                  {registerForm.formState.errors.password && (
+                    <p className="text-destructive text-sm mt-1">
+                      {registerForm.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <input
+                    id="register-confirm-password"
+                    type="password"
+                    placeholder="Confirm password"
+                    {...registerForm.register('confirmPassword')}
+                    className="w-full p-4 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-card"
+                  />
+                  {registerForm.formState.errors.confirmPassword && (
+                    <p className="text-destructive text-sm mt-1">
+                      {registerForm.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={registerMutation.isPending}
+                  className="w-full p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 text-lg font-medium"
+                >
+                  {registerMutation.isPending ? 'Creating account...' : 'Create account'}
+                </button>
+                
+                <div className="flex items-center my-6">
+                  <div className="flex-grow h-px bg-border"></div>
+                  <div className="px-4 text-muted-foreground">or</div>
+                  <div className="flex-grow h-px bg-border"></div>
+                </div>
+                
+                <button
+                  type="button"
+                  className="w-full p-4 bg-card border border-border text-foreground rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center justify-center space-x-2"
+                  onClick={() => googleLoginMutation.mutate()}
+                  disabled={googleLoginMutation.isPending || isCheckingRedirect}
+                >
+                  {(googleLoginMutation.isPending || isCheckingRedirect) ? (
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  ) : (
+                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                      <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                  )}
+                  <span>{(googleLoginMutation.isPending || isCheckingRedirect) ? 'Connecting...' : 'Sign up with Google'}</span>
+                </button>
+                
+                <div className="text-center mt-6">
+                  <p className="text-muted-foreground text-sm">
+                    Already have an account?{" "}
+                    <button 
+                      type="button"
+                      onClick={() => setAuthMode('login')} 
+                      className="text-primary hover:underline"
+                    >
+                      Log in
+                    </button>
+                  </p>
                 </div>
               </form>
-            ) : (
-              <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)}>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="register-username" className="block text-sm font-medium mb-1">
-                      Username
-                    </label>
-                    <input
-                      id="register-username"
-                      type="text"
-                      {...registerForm.register('username')}
-                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {registerForm.formState.errors.username && (
-                      <p className="text-destructive text-sm mt-1">
-                        {registerForm.formState.errors.username.message}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="register-email" className="block text-sm font-medium mb-1">
-                      Email
-                    </label>
-                    <input
-                      id="register-email"
-                      type="email"
-                      {...registerForm.register('email')}
-                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {registerForm.formState.errors.email && (
-                      <p className="text-destructive text-sm mt-1">
-                        {registerForm.formState.errors.email.message}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="register-password" className="block text-sm font-medium mb-1">
-                      Password
-                    </label>
-                    <input
-                      id="register-password"
-                      type="password"
-                      {...registerForm.register('password')}
-                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {registerForm.formState.errors.password && (
-                      <p className="text-destructive text-sm mt-1">
-                        {registerForm.formState.errors.password.message}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="register-confirm-password" className="block text-sm font-medium mb-1">
-                      Confirm Password
-                    </label>
-                    <input
-                      id="register-confirm-password"
-                      type="password"
-                      {...registerForm.register('confirmPassword')}
-                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {registerForm.formState.errors.confirmPassword && (
-                      <p className="text-destructive text-sm mt-1">
-                        {registerForm.formState.errors.confirmPassword.message}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={registerMutation.isPending}
-                    className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
-                  >
-                    {registerMutation.isPending ? 'Creating account...' : 'Create Account'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
       
       {/* Hero Section */}
-      <div className="w-full lg:w-1/2 bg-primary/10 p-8 flex items-center justify-center">
+      <div className="hidden lg:flex w-full lg:w-1/2 bg-primary/10 p-8 items-center justify-center">
         <div className="max-w-lg text-center lg:text-left">
           <h2 className="text-4xl font-bold mb-6">Journey to self-discovery, one drop at a time</h2>
           <p className="text-lg mb-8">
