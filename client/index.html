@@ -20,6 +20,13 @@
         border: 2px solid #ff6666;
         border-radius: 8px;
       }
+      #error-details {
+        margin-top: 20px;
+        background-color: #f8f8f8;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: monospace;
+      }
     </style>
   </head>
   <body>
@@ -30,12 +37,50 @@
     <div id="root-fallback">
       <h2>Application Error</h2>
       <p>The application failed to initialize. Please check console for errors.</p>
+      <div id="error-details"></div>
     </div>
     
-    <!-- Simple error detection -->
+    <!-- Enhanced error detection & diagnostics -->
     <script>
+      // Monitor script loading errors
+      window.addEventListener('error', function(e) {
+        console.error('Script loading error:', e);
+        
+        if (e.target && e.target.src) {
+          const errorEl = document.getElementById('error-details');
+          if (errorEl) {
+            errorEl.innerHTML += `<div>Failed to load: ${e.target.src}</div>`;
+          }
+        }
+      }, true); // Capture phase to catch all errors
+      
+      // Display environment information
+      console.log('Browser info:', navigator.userAgent);
+      console.log('Page URL:', window.location.href);
+      
+      // Detailed module debugging
+      window.moduleLoadAttempts = [];
+      
+      // Check React mounting
       window.addEventListener('DOMContentLoaded', function() {
         console.log('DOM fully loaded, checking React mount status...');
+        
+        const errorEl = document.getElementById('error-details');
+        if (errorEl) {
+          errorEl.innerHTML += `<div>Page URL: ${window.location.href}</div>`;
+          errorEl.innerHTML += `<div>Time: ${new Date().toISOString()}</div>`;
+        }
+        
+        // Check if Vite client is loaded
+        if (window.webSocketToken) {
+          console.log('Vite HMR client detected: ', window.webSocketToken);
+        } else {
+          console.error('Vite HMR client not detected!');
+          if (errorEl) {
+            errorEl.innerHTML += `<div>Error: Vite HMR client not loaded</div>`;
+          }
+        }
+        
         // Give React a brief moment to render
         setTimeout(function() {
           const rootEl = document.getElementById('root');
@@ -43,12 +88,45 @@
           if (rootEl && rootEl.childElementCount === 0) {
             console.error('React failed to mount content within expected timeframe');
             document.getElementById('root-fallback').style.display = 'block';
+            
+            // Report module load attempts
+            if (window.moduleLoadAttempts.length > 0) {
+              console.log('Module load attempts:', window.moduleLoadAttempts);
+              if (errorEl) {
+                errorEl.innerHTML += `<div>Module load attempts: ${window.moduleLoadAttempts.length}</div>`;
+                window.moduleLoadAttempts.forEach(attempt => {
+                  errorEl.innerHTML += `<div>- ${attempt}</div>`;
+                });
+              }
+            }
           }
         }, 2000);
       });
     </script>
     
-    <!-- Main application entry point -->
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Main application entry point with enhanced error handling -->
+    <script type="module">
+      try {
+        window.moduleLoadAttempts.push('Attempting to import main.tsx');
+        // Dynamic import with error handling
+        import('/src/main.tsx')
+          .then(() => {
+            console.log('main.tsx module loaded successfully');
+            window.moduleLoadAttempts.push('main.tsx loaded successfully');
+          })
+          .catch(error => {
+            console.error('Failed to load main.tsx module:', error);
+            window.moduleLoadAttempts.push(`Error loading main.tsx: ${error.message}`);
+            document.getElementById('root-fallback').style.display = 'block';
+            const errorEl = document.getElementById('error-details');
+            if (errorEl) {
+              errorEl.innerHTML += `<div>Failed to load main module: ${error.message}</div>`;
+            }
+          });
+      } catch (error) {
+        console.error('Critical error during module import:', error);
+        window.moduleLoadAttempts.push(`Critical error: ${error.message}`);
+      }
+    </script>
   </body>
 </html>

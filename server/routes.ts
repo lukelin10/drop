@@ -514,18 +514,50 @@ export function registerRoutes(app: Express): Server {
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     // Only handle non-API routes
     if (!req.path.startsWith('/api/')) {
-      // First check if we can serve direct HTML files from client directory
-      if (req.path.endsWith('.html') && fs.existsSync(path.join(process.cwd(), 'client', req.path.substring(1)))) {
-        console.log(`Serving HTML file directly: ${req.path}`);
-        res.sendFile(path.join(process.cwd(), 'client', req.path.substring(1)));
-        return;
+      const VITE_PORT = process.env.VITE_PORT || 5001;
+      const isDev = process.env.NODE_ENV !== 'production';
+      
+      // In development, proxy requests to the Vite dev server
+      if (isDev) {
+        // First check if this is a direct request to our index.html
+        if (req.path === '/' || req.path === '/index.html') {
+          const viteUrl = `http://localhost:${VITE_PORT}${req.originalUrl}`;
+          console.log(`[DEBUG] Redirecting index request to Vite: ${viteUrl}`);
+          return res.redirect(302, viteUrl);
+        }
+        
+        // Special case for standalone HTML files that we want to serve directly
+        if (req.path.endsWith('.html') && fs.existsSync(path.join(process.cwd(), 'client', req.path.substring(1)))) {
+          console.log(`[DEBUG] Serving HTML file directly: ${req.path}`);
+          res.sendFile(path.join(process.cwd(), 'client', req.path.substring(1)));
+          return;
+        }
+                
+        // For all other requests in development, tell the client to go directly to the Vite server
+        // rather than redirecting which can cause MIME type issues
+        return res.send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Redirecting to Vite Dev Server</title>
+              <meta http-equiv="refresh" content="0;URL='http://localhost:${VITE_PORT}${req.originalUrl}'">
+              <script>
+                window.location.href = 'http://localhost:${VITE_PORT}${req.originalUrl}';
+              </script>
+            </head>
+            <body>
+              <p>Redirecting to Vite development server...</p>
+              <p>If you are not redirected automatically, <a href="http://localhost:${VITE_PORT}${req.originalUrl}">click here</a>.</p>
+            </body>
+          </html>
+        `);
       }
       
-      // Then try to serve index.html from dist (production)
+      // In production, serve static files from dist
       if (fs.existsSync(path.join(process.cwd(), 'client/dist/index.html'))) {
         res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
       } else {
-        // In development, serve the client/index.html file directly
+        // Fallback to serving client/index.html directly
         console.log(`Serving index.html for route: ${req.path}`);
         res.sendFile(path.join(process.cwd(), 'client/index.html'));
       }
