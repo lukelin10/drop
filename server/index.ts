@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 const server = registerRoutes(app);
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001; // Changed from 5000 to avoid conflicts
 // @ts-ignore - Ignore typing issue with the port parameter
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
