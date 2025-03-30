@@ -90,6 +90,11 @@ app.get('/test-static', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'test-static.html'));
 });
 
+// Standalone app (fully working with in-browser React)
+app.get('/standalone', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'standalone.html'));
+});
+
 // Proxy all other requests to Vite
 app.use('/', createProxyMiddleware({
   target: `http://localhost:${VITE_PORT}`,
