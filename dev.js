@@ -75,9 +75,19 @@ app.use('/api', createProxyMiddleware({
   changeOrigin: true,
 }));
 
-// Special handler for direct.html
+// Special handler for our HTML files
 app.get('/direct.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'direct.html'));
+});
+
+// Special handler for static index
+app.get('/static', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'index-static.html'));
+});
+
+// Test static page
+app.get('/test-static', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'test-static.html'));
 });
 
 // Proxy all other requests to Vite
