@@ -3,56 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Page</title>
+  <title>Super Simple Test</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      background-color: #f0f0f0;
+      font-family: system-ui, sans-serif;
+      background-color: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
     .container {
       background-color: white;
       padding: 2rem;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: 0 auto;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      max-width: 500px;
+      text-align: center;
     }
     h1 {
-      color: #0066cc;
+      color: #4a5568;
     }
-    .test-button {
-      background-color: #0066cc;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 1rem;
+    .success {
+      color: #2f855a;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Simple Test Page</h1>
-    <p>If you can see this page, the server is working correctly.</p>
-    <p>Current time: <span id="time"></span></p>
-    <button class="test-button" id="test-btn">Click to Test JavaScript</button>
-    <p id="result"></p>
+    <h1>Basic HTML Test</h1>
+    <p>This page contains no JavaScript or frameworks, just plain HTML and CSS.</p>
+    <p class="success">If you can see this, the server is correctly serving static HTML files.</p>
+    <p>Loaded at: <span id="time"></span></p>
   </div>
 
   <script>
-    // Display the current time
     document.getElementById('time').textContent = new Date().toLocaleTimeString();
-    
-    // Add event listener to the button
-    document.getElementById('test-btn').addEventListener('click', function() {
-      document.getElementById('result').textContent = 'JavaScript is working! Clicked at ' + new Date().toLocaleTimeString();
-      console.log('Button clicked at', new Date().toLocaleTimeString());
-    });
-
-    // Log to console for testing
-    console.log('Test page loaded at', new Date().toLocaleTimeString());
+    console.log('Test page loaded successfully at', new Date().toLocaleTimeString());
   </script>
 </body>
 </html>
