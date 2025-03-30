@@ -57,16 +57,15 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <div className="min-h-screen bg-background font-sans antialiased">
-          <main className="flex flex-col">
-            <AppRouter />
-          </main>
+    <div className="min-h-screen bg-background font-sans antialiased">
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+        <h1 className="text-4xl font-bold text-blue-600 mb-4">Drop - Journal App</h1>
+        <p className="text-xl">Debug version - Checking rendering</p>
+        <div className="mt-8 p-4 bg-white rounded shadow">
+          <p>Current time: {new Date().toLocaleTimeString()}</p>
         </div>
-        <Toaster />
-      </AuthProvider>
-    </QueryClientProvider>
+      </div>
+    </div>
   );
 }
 
