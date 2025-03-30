@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import { createServer, type Server } from 'http';
 import path from 'path';
+import fs from 'fs';
 import { isAuthenticated, setupAuth } from './auth';
 import { storage } from './storage';
 import { aiService } from './ai-service';
@@ -501,24 +502,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
   
-  // In development, Vite handles the static files
-  // In production, we'd serve from client/dist 
-  
-  // Catch-all route for client-side routing
-  // Serve static files for client-side app in any environment
-  // In production, serve from client/dist
-  // In development, connect to the Vite dev server
-  app.use(express.static('client/dist')); 
-  
-  // Serve static files from the server/static directory
+  // Serve static files from the server/static directory first
   app.use(express.static(path.join(__dirname, 'static')));
+
+  // Try to serve any static files from the client/dist directory if they exist
+  // This is useful in production, where the client files are built
+  app.use(express.static('client/dist'));
+  
+  // Special route for getting the welcome page
+  app.get('/welcome', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, 'static', 'index.html'));
+  });
   
   // Catch-all route for client-side routing
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     // Only handle non-API routes
     if (!req.path.startsWith('/api/')) {
-      // In development mode, serve our simple welcome page
-      res.sendFile(path.join(__dirname, 'static', 'index.html'));
+      try {
+        // First try to serve the React app's index.html in production
+        if (fs.existsSync(path.join(process.cwd(), 'client/dist/index.html'))) {
+          res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
+        } else {
+          // If the production build doesn't exist, send the welcome page
+          res.sendFile(path.join(__dirname, 'static', 'index.html'));
+        }
+      } catch (error) {
+        console.error('Error serving static file:', error);
+        res.sendFile(path.join(__dirname, 'static', 'index.html'));
+      }
     } else {
       next();
     }
