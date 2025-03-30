@@ -18,9 +18,24 @@ export const apiRequest = async (
   data?: unknown,
   customHeaders?: Record<string, string>
 ) => {
-  // Ensure endpoint starts with the correct base URL
-  // We'll use relative URLs which will work in both development and production
-  const url = endpoint.startsWith('http') ? endpoint : `${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  // Get the API base URL from environment variables if available
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  
+  // Construct the full URL with appropriate handling for different endpoint formats
+  let url = endpoint;
+  
+  // If the endpoint is already a full URL, use it as is
+  if (!endpoint.startsWith('http')) {
+    // If the endpoint doesn't have a leading slash, add it
+    if (!endpoint.startsWith('/')) {
+      url = `/${endpoint}`;
+    }
+    
+    // If we have an API base URL from env vars, prepend it
+    if (apiBaseUrl) {
+      url = `${apiBaseUrl}${url}`;
+    }
+  }
   
   const options: RequestInit = {
     method,
