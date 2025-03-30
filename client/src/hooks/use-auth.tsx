@@ -51,8 +51,15 @@ type AuthContextType = {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  console.log('[AuthProvider] Initializing');
+  
   const { toast } = useToast();
   const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
+  
+  useEffect(() => {
+    console.log('[AuthProvider] Component mounted');
+    return () => console.log('[AuthProvider] Component unmounted');
+  }, []);
   
   const {
     data: user,
@@ -62,18 +69,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<User>({
     queryKey: ['/api/user'],
     queryFn: async () => {
+      console.log('[AuthProvider] Fetching user data');
       try {
         const res = await apiRequest('GET', '/api/user');
+        console.log('[AuthProvider] User API response status:', res.status);
+        
         if (!res.ok) {
           if (res.status === 401) {
-            // Not authenticated, this is fine
+            console.log('[AuthProvider] User not authenticated (401)');
             return null;
           }
+          console.error('[AuthProvider] Failed to fetch user data:', res.status);
           throw new Error('Failed to fetch user');
         }
-        return await res.json();
+        
+        const userData = await res.json();
+        console.log('[AuthProvider] User data retrieved:', userData ? 'Valid user data' : 'No user data');
+        return userData;
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('[AuthProvider] Error fetching user:', error);
         return null;
       }
     },
