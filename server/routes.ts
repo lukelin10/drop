@@ -502,33 +502,21 @@ export function registerRoutes(app: Express): Server {
     }
   });
   
-  // Serve static files from the server/static directory first
-  app.use(express.static(path.join(__dirname, 'static')));
-
-  // Try to serve any static files from the client/dist directory if they exist
-  // This is useful in production, where the client files are built
+  // Serve client files - prioritize these over server/static files
+  // In development mode, the Vite server will handle these
+  // In production, this will serve the built files
   app.use(express.static('client/dist'));
-  
-  // Special route for getting the welcome page
-  app.get('/welcome', (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, 'static', 'index.html'));
-  });
   
   // Catch-all route for client-side routing
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     // Only handle non-API routes
     if (!req.path.startsWith('/api/')) {
-      try {
-        // First try to serve the React app's index.html in production
-        if (fs.existsSync(path.join(process.cwd(), 'client/dist/index.html'))) {
-          res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
-        } else {
-          // If the production build doesn't exist, send the welcome page
-          res.sendFile(path.join(__dirname, 'static', 'index.html'));
-        }
-      } catch (error) {
-        console.error('Error serving static file:', error);
-        res.sendFile(path.join(__dirname, 'static', 'index.html'));
+      // In production, serve the client/dist/index.html file
+      if (fs.existsSync(path.join(process.cwd(), 'client/dist/index.html'))) {
+        res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
+      } else {
+        // In development, send a 404 (the Vite dev server will handle the routes)
+        res.status(404).send('Not found');
       }
     } else {
       next();
