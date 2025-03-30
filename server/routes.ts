@@ -502,21 +502,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
   
-  // Serve client files - prioritize these over server/static files
-  // In development mode, the Vite server will handle these
-  // In production, this will serve the built files
-  app.use(express.static('client/dist'));
+  // Serve static files directly from the client directory
+  app.use(express.static('client'));
+  
+  // Also serve files from client/dist if available (for production)
+  if (fs.existsSync(path.join(process.cwd(), 'client/dist'))) {
+    app.use(express.static('client/dist'));
+  }
   
   // Catch-all route for client-side routing
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     // Only handle non-API routes
     if (!req.path.startsWith('/api/')) {
-      // In production, serve the client/dist/index.html file
+      // First check if we can serve direct HTML files from client directory
+      if (req.path.endsWith('.html') && fs.existsSync(path.join(process.cwd(), 'client', req.path.substring(1)))) {
+        console.log(`Serving HTML file directly: ${req.path}`);
+        res.sendFile(path.join(process.cwd(), 'client', req.path.substring(1)));
+        return;
+      }
+      
+      // Then try to serve index.html from dist (production)
       if (fs.existsSync(path.join(process.cwd(), 'client/dist/index.html'))) {
         res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
       } else {
-        // In development, send a 404 (the Vite dev server will handle the routes)
-        res.status(404).send('Not found');
+        // In development, serve the client/index.html file directly
+        console.log(`Serving index.html for route: ${req.path}`);
+        res.sendFile(path.join(process.cwd(), 'client/index.html'));
       }
     } else {
       next();
