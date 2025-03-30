@@ -31,6 +31,8 @@ const buildClient = spawn('npx', ['vite', '--port', VITE_PORT, '--host', '0.0.0.
   shell: true,
   env: {
     ...process.env,
+    NODE_ENV: 'development',
+    VITE_PORT: VITE_PORT.toString(),
     // Enable verbose logging
     DEBUG: 'vite:*',
     VITE_CJS_TRACE: '1'
