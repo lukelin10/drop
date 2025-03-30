@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Drop - Daily Reflection Journal</title>
     
-    <!-- Load React from CDN for Replit compatibility -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Styles for the application and loading state -->
+    <!-- Simple loading styles -->
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -46,49 +42,6 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
-      
-      .error-container {
-        display: none;
-        padding: 20px;
-        margin: 20px;
-        background-color: #fff0f0;
-        border: 2px solid #ff6666;
-        border-radius: 8px;
-      }
-      
-      .error-details {
-        margin-top: 20px;
-        background-color: #f8f8f8;
-        padding: 10px;
-        border-radius: 5px;
-        font-family: monospace;
-      }
-      
-      .fallback-container {
-        max-width: 800px;
-        margin: 50px auto;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      }
-      
-      .action-button {
-        display: inline-block;
-        background: #5046e5;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 10px 16px;
-        font-size: 16px;
-        cursor: pointer;
-        text-decoration: none;
-        margin-top: 15px;
-      }
-      
-      .action-button:hover {
-        background: #4038ca;
-      }
     </style>
   </head>
   <body>
@@ -100,150 +53,7 @@
       </div>
     </div>
     
-    <!-- Fallback content in case React fails to mount -->
-    <div id="error-container" class="error-container">
-      <h2>Application Error</h2>
-      <p>The application failed to initialize. Please check console for errors.</p>
-      <div id="error-details" class="error-details"></div>
-      
-      <a href="/direct.html" class="action-button">
-        Try Simplified Version
-      </a>
-    </div>
-    
-    <script>
-      // Log environment information
-      console.log('Browser info:', navigator.userAgent);
-      console.log('Page URL:', window.location.href);
-      
-      // Initialize tracking for module load attempts
-      window.moduleLoadAttempts = [];
-      
-      // Utility function to update error details
-      function updateErrorDetails(message) {
-        const errorDetails = document.getElementById('error-details');
-        if (errorDetails) {
-          errorDetails.innerHTML += `<div>${message}</div>`;
-        }
-      }
-      
-      // Function to show error container
-      function showError() {
-        document.getElementById('error-container').style.display = 'block';
-      }
-      
-      // Detect environment
-      const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname.includes('127.0.0.1');
-      const isReplit = window.location.hostname.includes('replit');
-      
-      // Monitor script loading errors
-      window.addEventListener('error', function(e) {
-        console.error('Script loading error:', e);
-        
-        if (e.target && e.target.src) {
-          updateErrorDetails(`Failed to load: ${e.target.src}`);
-        }
-      }, true);
-      
-      // Conditionally load the appropriate entry point based on environment
-      window.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM fully loaded, checking React mount status...');
-        updateErrorDetails(`Page URL: ${window.location.href}`);
-        updateErrorDetails(`Time: ${new Date().toISOString()}`);
-        
-        // Method 1: Try to load the bundled assets (production mode)
-        if (!isLocalhost) {
-          try {
-            // Load the bundled CSS file
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = '/assets/index.css';
-            document.head.appendChild(cssLink);
-            
-            // Load the bundled JS file
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = '/assets/index.js';
-            script.onerror = () => {
-              console.error('Failed to load bundled assets, falling back to Method 2');
-              updateErrorDetails('Failed to load bundled assets');
-              tryMethod2();
-            };
-            document.body.appendChild(script);
-          } catch (err) {
-            console.error('Error in Method 1:', err);
-            updateErrorDetails(`Method 1 error: ${err.message}`);
-            tryMethod2();
-          }
-        } else {
-          // In development with localhost, load the module directly
-          tryMethod2();
-        }
-        
-        // Method 2: Try to load the module directly (development mode)
-        function tryMethod2() {
-          try {
-            window.moduleLoadAttempts.push('Attempting to import main.tsx');
-            import('/src/main.tsx')
-              .then(() => {
-                console.log('main.tsx module loaded successfully');
-                window.moduleLoadAttempts.push('main.tsx loaded successfully');
-              })
-              .catch(error => {
-                console.error('Failed to load main.tsx module:', error);
-                window.moduleLoadAttempts.push(`Error loading main.tsx: ${error.message}`);
-                updateErrorDetails(`Failed to load main module: ${error.message}`);
-                tryFallback();
-              });
-          } catch (error) {
-            console.error('Critical error during module import:', error);
-            window.moduleLoadAttempts.push(`Critical error: ${error.message}`);
-            updateErrorDetails(`Critical error: ${error.message}`);
-            tryFallback();
-          }
-        }
-        
-        // Method 3: Simple fallback for Replit
-        function tryFallback() {
-          if (isReplit) {
-            // In Replit environment, show the simplified fallback UI
-            const rootEl = document.getElementById('root');
-            rootEl.innerHTML = `
-              <div class="fallback-container">
-                <h1 style="color: #5046e5; margin-bottom: 10px;">Drop Journal</h1>
-                <p>The full application couldn't be loaded at this time.</p>
-                <p>You have a few options:</p>
-                <div style="margin-top: 20px;">
-                  <a href="/direct.html" class="action-button">Use Simplified Version</a>
-                  <a href="/static" class="action-button" style="margin-left: 10px;">Try Static Version</a>
-                </div>
-              </div>
-            `;
-          } else {
-            // Show standard error state
-            showError();
-          }
-        }
-        
-        // Check if mounting succeeded after a timeout
-        setTimeout(function() {
-          const rootEl = document.getElementById('root');
-          if (rootEl && rootEl.innerHTML.includes('Loading Drop Journal')) {
-            console.error('React failed to mount content within expected timeframe');
-            
-            // Report module load attempts
-            if (window.moduleLoadAttempts.length > 0) {
-              console.log('Module load attempts:', window.moduleLoadAttempts);
-              window.moduleLoadAttempts.forEach(attempt => {
-                updateErrorDetails(attempt);
-              });
-            }
-            
-            showError();
-          }
-        }, 5000);
-      });
-    </script>
+    <!-- Vite will inject its scripts here -->
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
