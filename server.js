@@ -39,6 +39,16 @@ if (isProduction) {
     res.sendFile(path.join(__dirname, 'client/dist/index-static.html'));
   });
 
+  // Test static page
+  staticApp.get('/test-static', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/test-static.html'));
+  });
+  
+  // Standalone app (fully working with in-browser React)
+  staticApp.get('/standalone', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/standalone.html'));
+  });
+
   // Handle all routes not caught by static serving
   staticApp.get('*', (req, res) => {
     // Check if the request is for an API route
