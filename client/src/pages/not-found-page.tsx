@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'wouter';
 
-export default function NotFound() {
+export default function NotFoundPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="text-center">
