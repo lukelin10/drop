@@ -19,9 +19,17 @@ app.use(express.urlencoded({ extended: true }));
 // Register API routes (this also sets up authentication)
 const server = registerRoutes(app);
 
-// Start server
-const PORT = process.env.PORT || 5001; // Changed from 5000 to avoid conflicts
-// @ts-ignore - Ignore typing issue with the port parameter
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// In development mode, we'll start the server in dev.js
+// In production mode, we'll start the server in server.js
+// This approach avoids having multiple HTTP servers listening on different ports
+if (process.env.NODE_ENV !== 'development') {
+  const PORT = parseInt(process.env.PORT || '3000', 10);
+  server.listen(PORT, () => {
+    console.log(`API server running on port ${PORT}`);
+  });
+} else {
+  console.log('API routes registered for development use');
+}
+
+// Export the app for use in dev.js and server.js
+export default app;

@@ -1,1 +1,1 @@
-{"command":"node server/start.js"}
+{"command":"npm run dev"}

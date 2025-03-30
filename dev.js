@@ -1,118 +1,92 @@
 // This script runs the development servers
 const { spawn } = require('child_process');
 const process = require('process');
-const fs = require('fs');
-const path = require('path');
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
-// Configuration
-const API_PORT = process.env.PORT || 5000;
-const VITE_PORT = 5001;
-const PROXY_PORT = 3000;
+// Configuration - Use port 5000 for Replit's public facing port
+const REPLIT_PORT = 5000;
+const VITE_PORT = process.env.VITE_PORT || 5173;
+const SERVER_PORT = process.env.PORT || REPLIT_PORT;
+
+// Set NODE_ENV to development to ensure we're in development mode
+process.env.NODE_ENV = 'development';
 
 // Detect if running in Replit environment
 const isReplit = process.env.REPL_ID && process.env.REPL_OWNER;
-const BASE_URL = process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : `http://localhost:${PROXY_PORT}`;
+const BASE_URL = process.env.REPL_SLUG 
+  ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
+  : `http://localhost:${SERVER_PORT}`;
 
 // Print useful debug information
 console.log('Starting the Drop Journaling App in development mode...');
 console.log(`Environment: ${isReplit ? 'Replit' : 'Local'}`);
-console.log(`API server port: ${API_PORT}`);
-console.log(`Vite dev server port: ${VITE_PORT}`);
-console.log(`Public access URL: ${BASE_URL}`);
+console.log(`Server port: ${SERVER_PORT}`);
+console.log(`Base URL: ${BASE_URL}`);
 
-// Verify the existence of critical files
-const clientDir = path.join(__dirname, 'client');
-const clientIndexHtml = path.join(clientDir, 'index.html');
-const mainTsx = path.join(clientDir, 'src', 'main.tsx');
+// Get the configured API server from server/start.js
+const apiApp = require('./server/start.js');
 
-console.log('\nChecking critical files:');
-console.log(`client/index.html: ${fs.existsSync(clientIndexHtml) ? 'Found ✓' : 'MISSING ✗'}`);
-console.log(`client/src/main.tsx: ${fs.existsSync(mainTsx) ? 'Found ✓' : 'MISSING ✗'}`);
-
-// If direct.html exists, we have a workaround available
-if (fs.existsSync(path.join(clientDir, 'direct.html'))) {
-  console.log('direct.html: Found ✓ (Backup React implementation available)');
-}
-
-// Start the API server
-require('./server/start.js');
-
-// Configure Vite command based on environment
-const viteArgs = [
-  'vite', 
-  '--port', VITE_PORT, 
-  '--host', '0.0.0.0',
-  'client'
-];
-
-// Start the client Vite dev server with detailed error reporting
-const buildClient = spawn('npx', viteArgs, {
-  stdio: 'inherit',
-  shell: true,
-  env: {
-    ...process.env,
-    NODE_ENV: 'development',
-    VITE_PORT: VITE_PORT.toString(),
-    VITE_API_BASE_URL: BASE_URL, // Pass the API base URL to the frontend
-    VITE_BASE_URL: BASE_URL,     // Pass the base URL to the frontend
-    // Enable clientPort for HMR in Replit
-    VITE_HMR_CLIENT_PORT: isReplit ? '443' : VITE_PORT.toString(),
-    // Enable verbose logging
-    DEBUG: 'vite:*',
-    VITE_CJS_TRACE: '1'
-  }
-});
-
-// Create a proxy server to handle both the API and Vite
-console.log(`\nSetting up proxy server on port ${PROXY_PORT}...`);
+// Create a main development server
 const app = express();
 
-// Proxy API requests to our API server
-app.use('/api', createProxyMiddleware({
-  target: `http://localhost:${API_PORT}`,
-  changeOrigin: true,
-}));
+// Use API routes
+app.use('/api', apiApp);
 
-// Special handler for our HTML files
-app.get('/direct.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'direct.html'));
-});
+// Serve static assets from build directory in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  app.use(express.static(path.join(__dirname, 'client', 'dist')));
+}
 
-// Special handler for static index
-app.get('/static', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'index-static.html'));
-});
+// Start the Vite dev server in development
+if (process.env.NODE_ENV !== 'production') {
+  const { spawn } = require('child_process');
+  
+  console.log('Starting Vite development server...');
+  // Start the Vite server as a separate process on port 5173
+  const viteProcess = spawn('npx', ['vite', 'client', '--host', '0.0.0.0', '--port', VITE_PORT], {
+    stdio: 'inherit',
+    shell: true,
+    env: {
+      ...process.env,
+      VITE_API_BASE_URL: BASE_URL,
+      VITE_BASE_URL: BASE_URL
+    }
+  });
+  
+  // Create a proxy to the Vite dev server for all non-API requests
+  app.use('/', createProxyMiddleware({
+    target: `http://localhost:${VITE_PORT}`,
+    changeOrigin: true,
+    ws: true,
+    logLevel: 'warn'
+  }));
+  
+  // Handle Vite process exit
+  viteProcess.on('exit', (code) => {
+    if (code !== 0) {
+      console.error(`Vite process exited with code ${code}`);
+    }
+    process.exit(code);
+  });
+  
+  // Ensure Vite process is killed on exit
+  process.on('exit', () => {
+    viteProcess.kill();
+  });
+}
 
-// Test static page
-app.get('/test-static', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'test-static.html'));
-});
-
-// Proxy all other requests to Vite
-app.use('/', createProxyMiddleware({
-  target: `http://localhost:${VITE_PORT}`,
-  changeOrigin: true,
-  ws: true, // Enable WebSocket proxy for HMR
-}));
-
-// Start the proxy server
-app.listen(PROXY_PORT, '0.0.0.0', () => {
-  console.log(`Proxy server running at http://localhost:${PROXY_PORT}`);
-});
-
-// Handle client server crashes
-buildClient.on('close', (code) => {
-  if (code !== 0) {
-    console.error(`\nClient development process exited with code ${code}`);
-    console.error('This may indicate an issue with the Vite configuration or React application.');
+// Start the unified server
+app.listen(SERVER_PORT, '0.0.0.0', () => {
+  console.log(`Server running at http://localhost:${SERVER_PORT}`);
+  if (isReplit) {
+    console.log(`Replit URL: ${BASE_URL}`);
   }
 });
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.log('Shutting down development servers...');
-  buildClient.kill();
+  console.log('Shutting down server...');
   process.exit(0);
 });
