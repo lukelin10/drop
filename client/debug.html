@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vite Debug Page</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    h1 { color: #0066cc; }
+    pre {
+      background: #f0f0f0;
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vite Debug Test</h1>
+    <p>This page tests Vite module loading functionality and helps diagnose client-side issues.</p>
+    
+    <div class="card">
+      <h2>Environment Variables</h2>
+      <div id="env-vars">Checking...</div>
+    </div>
+
+    <div class="card">
+      <h2>Module Loading</h2>
+      <div id="module-test">Checking...</div>
+    </div>
+
+    <div class="card">
+      <h2>Vite Client Connection</h2>
+      <div id="hot-update">Checking HMR connection...</div>
+    </div>
+    
+    <div class="card">
+      <h2>Network Status</h2>
+      <pre id="network-log">Loading...</pre>
+    </div>
+  </div>
+
+  <!-- Debug script with vanilla JS -->
+  <script type="module">
+    console.log('Vite debug script starting');
+    
+    const envVarsEl = document.getElementById('env-vars');
+    const moduleTestEl = document.getElementById('module-test');
+    const hmrStatusEl = document.getElementById('hot-update');
+    const networkLogEl = document.getElementById('network-log');
+    
+    // 1. Check environment variables
+    try {
+      envVarsEl.innerHTML = `
+        <p><strong>import.meta available:</strong> <span class="${typeof import.meta !== 'undefined' ? 'success' : 'error'}">${typeof import.meta !== 'undefined'}</span></p>
+        <p><strong>import.meta.env available:</strong> <span class="${typeof import.meta.env !== 'undefined' ? 'success' : 'error'}">${typeof import.meta.env !== 'undefined'}</span></p>
+      `;
+      
+      if (typeof import.meta.env !== 'undefined') {
+        const envEntries = Object.entries(import.meta.env)
+          .filter(([key]) => key.startsWith('VITE_'))
+          .map(([key, value]) => `<tr><td>${key}</td><td>${String(value)}</td></tr>`)
+          .join('');
+          
+        envVarsEl.innerHTML += `
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Variable</th>
+                <th style="text-align: left;">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${envEntries.length ? envEntries : '<tr><td colspan="2">No VITE_ environment variables found</td></tr>'}
+            </tbody>
+          </table>
+        `;
+      }
+    } catch (err) {
+      envVarsEl.innerHTML = `<p class="error">Error checking environment: ${err.message}</p>`;
+    }
+    
+    // 2. Test module loading
+    try {
+      moduleTestEl.innerHTML = '<p>Attempting to load a simple ESM module...</p>';
+      
+      // Dynamically create a small test module
+      const testModuleContent = `
+        export const testFunction = () => {
+          return 'Module successfully loaded!';
+        };
+      `;
+      
+      const blob = new Blob([testModuleContent], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      
+      // Try importing the module
+      import(/* @vite-ignore */ url).then(module => {
+        moduleTestEl.innerHTML += `<p class="success">Module loaded and executed: ${module.testFunction()}</p>`;
+      }).catch(err => {
+        moduleTestEl.innerHTML += `<p class="error">Failed to load module: ${err.message}</p>`;
+      });
+    } catch (err) {
+      moduleTestEl.innerHTML = `<p class="error">Error in module test: ${err.message}</p>`;
+    }
+    
+    // 3. Check Vite Hot Module Replacement status
+    try {
+      if (typeof import.meta.hot !== 'undefined') {
+        hmrStatusEl.innerHTML = '<p class="success">HMR is available!</p>';
+        
+        import.meta.hot.on('vite:beforeUpdate', (data) => {
+          hmrStatusEl.innerHTML += `<p>HMR update detected: ${new Date().toLocaleTimeString()}</p>`;
+        });
+      } else {
+        hmrStatusEl.innerHTML = '<p class="error">HMR is not available. This might not be a Vite dev server.</p>';
+      }
+    } catch (err) {
+      hmrStatusEl.innerHTML = `<p class="error">Error checking HMR: ${err.message}</p>`;
+    }
+    
+    // 4. Test basic network requests
+    try {
+      networkLogEl.textContent = 'Checking network connections...';
+      
+      Promise.all([
+        fetch('/api/health').then(r => r.ok ? r.json() : { error: r.status }),
+        fetch('/index.html').then(r => ({ status: r.status, type: r.headers.get('content-type') })),
+        fetch('/src/main.tsx').then(r => ({ status: r.status, type: r.headers.get('content-type') }))
+      ]).then(results => {
+        networkLogEl.textContent = `API Health: ${JSON.stringify(results[0])}\n` +
+          `Index HTML: ${JSON.stringify(results[1])}\n` +
+          `main.tsx: ${JSON.stringify(results[2])}`;
+      }).catch(err => {
+        networkLogEl.textContent += `\nError in network tests: ${err.message}`;
+      });
+    } catch (err) {
+      networkLogEl.textContent += `\nError setting up network tests: ${err.message}`;
+    }
+  </script>
+</body>
+</html>
