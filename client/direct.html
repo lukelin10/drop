@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drop Journal - Direct HTML Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f7f9fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h1 {
+      color: #3b82f6;
+      margin-bottom: 1rem;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .info {
+      background-color: #f0f7ff;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    .footer {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Drop Journal Direct HTML</h1>
+    <p>This is a direct HTML file without any React or JavaScript frameworks.</p>
+    
+    <div class="info">
+      <p><strong>Server diagnostics:</strong></p>
+      <ul>
+        <li>Page loaded successfully at: <span id="load-time"></span></li>
+        <li>Current URL: <span id="current-url"></span></li>
+        <li>Browser: <span id="user-agent"></span></li>
+      </ul>
+    </div>
+    
+    <p>
+      If you can see this page, the web server is working correctly,
+      but there might be an issue with the React application setup.
+    </p>
+    
+    <div class="footer">
+      Drop Journal App - Test Page
+    </div>
+  </div>
+
+  <script>
+    // Simple diagnostics
+    document.getElementById('load-time').textContent = new Date().toLocaleTimeString();
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('user-agent').textContent = navigator.userAgent;
+    
+    // Log to console for verification
+    console.log('Direct HTML page loaded successfully at', new Date().toLocaleTimeString());
+  </script>
+</body>
+</html>
