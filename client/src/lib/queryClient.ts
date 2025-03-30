@@ -18,6 +18,10 @@ export const apiRequest = async (
   data?: unknown,
   customHeaders?: Record<string, string>
 ) => {
+  // Ensure endpoint starts with the correct base URL
+  // We'll use relative URLs which will work in both development and production
+  const url = endpoint.startsWith('http') ? endpoint : `${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  
   const options: RequestInit = {
     method,
     headers: {
@@ -31,7 +35,7 @@ export const apiRequest = async (
     options.body = JSON.stringify(data);
   }
 
-  const response = await fetch(endpoint, options);
+  const response = await fetch(url, options);
 
   if (!response.ok) {
     let errorData: ApiErrorType = {
@@ -56,9 +60,11 @@ export const apiRequest = async (
 
 export const getQueryFn =
   (options: QueryFnOptions = {}) =>
-  async ({ queryKey }: { queryKey: string[] }) => {
+  // Updated to match TanStack Query v5 context type
+  async ({ queryKey }: { queryKey: readonly unknown[] }) => {
     try {
-      const endpoint = queryKey.join("/");
+      // Convert queryKey to string array when joining
+      const endpoint = queryKey.map(String).join("/");
       const response = await apiRequest("GET", endpoint);
       
       if (response.status === 204) {
@@ -84,7 +90,8 @@ export const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
       refetchOnWindowFocus: false,
-      queryFn: getQueryFn(),
+      // Remove the default queryFn to avoid typing issues
+      // This means we'll need to provide the queryFn for each query
     },
   },
 });
