@@ -1,52 +1,10 @@
-import React, { useState, useEffect, ErrorInfo } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/use-auth';
 import { Redirect } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-
-// Error boundary for catching rendering errors
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error: Error | null; errorInfo: ErrorInfo | null }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('AuthPage error caught:', error, errorInfo);
-    this.setState({ error, errorInfo });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h1>
-          <p className="mb-4 text-muted-foreground">{this.state.error?.message || 'Unknown error'}</p>
-          <pre className="bg-card p-4 rounded max-w-full overflow-x-auto text-sm">
-            {this.state.error?.stack}
-          </pre>
-          <button
-            className="mt-6 px-4 py-2 bg-primary text-primary-foreground rounded"
-            onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 // Form schemas
 const loginSchema = z.object({
@@ -65,20 +23,13 @@ const registerSchema = loginSchema.extend({
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-function AuthPageContent() {
-  console.log('[AuthPage] Component rendering');
-
-  useEffect(() => {
-    console.log('[AuthPage] Component mounted');
-    console.log('[AuthPage] Current location:', window.location.pathname);
-    return () => console.log('[AuthPage] Component unmounted');
-  }, []);
-
-  const { user, loginMutation, registerMutation, googleLoginMutation, isCheckingRedirect } = useAuth();
-  console.log('[AuthPage] Auth state:', { user, isLoading: loginMutation.isPending, isCheckingRedirect });
+export default function AuthPage() {
+  console.log('Rendering AuthPage');
   
+  const { user, loginMutation, registerMutation, googleLoginMutation, isCheckingRedirect } = useAuth();
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   
+  // Setup form hooks
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -129,7 +80,7 @@ function AuthPageContent() {
                   <input
                     id="login-username"
                     type="text"
-                    placeholder="Email address"
+                    placeholder="Username"
                     {...loginForm.register('username')}
                     className="w-full p-4 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-card"
                   />
@@ -155,16 +106,10 @@ function AuthPageContent() {
                   )}
                 </div>
                 
-                <div className="text-right">
-                  <a href="#" className="text-primary text-sm hover:underline">
-                    Forgot password?
-                  </a>
-                </div>
-                
                 <button
                   type="submit"
                   disabled={loginMutation.isPending}
-                  className="w-full p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 text-lg font-medium"
+                  className="w-full p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 text-lg font-medium"
                 >
                   {loginMutation.isPending ? 'Logging in...' : 'Log in'}
                 </button>
@@ -177,7 +122,7 @@ function AuthPageContent() {
                 
                 <button
                   type="button"
-                  className="w-full p-4 bg-card border border-border text-foreground rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center justify-center space-x-2"
+                  className="w-full p-4 bg-card border border-border text-foreground rounded-md hover:bg-accent flex items-center justify-center space-x-2"
                   onClick={() => googleLoginMutation.mutate()}
                   disabled={googleLoginMutation.isPending || isCheckingRedirect}
                 >
@@ -277,7 +222,7 @@ function AuthPageContent() {
                 <button
                   type="submit"
                   disabled={registerMutation.isPending}
-                  className="w-full p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 text-lg font-medium"
+                  className="w-full p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 text-lg font-medium"
                 >
                   {registerMutation.isPending ? 'Creating account...' : 'Create account'}
                 </button>
@@ -290,7 +235,7 @@ function AuthPageContent() {
                 
                 <button
                   type="button"
-                  className="w-full p-4 bg-card border border-border text-foreground rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center justify-center space-x-2"
+                  className="w-full p-4 bg-card border border-border text-foreground rounded-md hover:bg-accent flex items-center justify-center space-x-2"
                   onClick={() => googleLoginMutation.mutate()}
                   disabled={googleLoginMutation.isPending || isCheckingRedirect}
                 >
@@ -343,47 +288,11 @@ function AuthPageContent() {
             
             <div className="bg-white/80 p-4 rounded-lg shadow">
               <h3 className="font-semibold text-lg mb-2">AI Conversations</h3>
-              <p>Engage with Claude, your personal reflection companion</p>
-            </div>
-            
-            <div className="bg-white/80 p-4 rounded-lg shadow">
-              <h3 className="font-semibold text-lg mb-2">Smart Tagging</h3>
-              <p>Automatic organization of your entries by themes and topics</p>
-            </div>
-            
-            <div className="bg-white/80 p-4 rounded-lg shadow">
-              <h3 className="font-semibold text-lg mb-2">Growth Insights</h3>
-              <p>Track your personal development and emotional patterns</p>
+              <p>Engage with an AI companion that helps you explore your thoughts deeper</p>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
-
-// Export the protected component with the error boundary
-export default function AuthPage() {
-  try {
-    return (
-      <ErrorBoundary>
-        <div className="bg-background">
-          <AuthPageContent />
-        </div>
-      </ErrorBoundary>
-    );
-  } catch (error) {
-    console.error('Error in AuthPage:', error);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h1>
-          <p className="mb-4 text-muted-foreground">Error loading the authentication page.</p>
-          <pre className="bg-card p-4 rounded max-w-full overflow-x-auto text-sm">
-            {error instanceof Error ? error.message : 'Unknown error'}
-          </pre>
-        </div>
-      </div>
-    );
-  }
 }
