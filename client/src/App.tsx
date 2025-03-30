@@ -45,6 +45,14 @@ const PublicRoutes = [
 function App() {
   useEffect(() => {
     console.log('[App] Component mounted');
+    console.log('[App] Window location:', window.location.href);
+    console.log('[App] Available routes:', {
+      HOME: AppRoutes.HOME,
+      AUTH: AppRoutes.AUTH,
+      JOURNAL: AppRoutes.JOURNAL,
+      DAILY_QUESTION: AppRoutes.DAILY_QUESTION,
+      CONVERSATION: AppRoutes.CONVERSATION,
+    });
     return () => console.log('[App] Component unmounted');
   }, []);
 
