@@ -32,12 +32,32 @@ function App() {
 function Router() {
   return (
     <Switch>
-      <Route path="/auth" component={AuthPage} />
-      <ProtectedRoute path="/" component={HomePage} />
-      <ProtectedRoute path="/journal" component={JournalPage} />
-      <ProtectedRoute path="/daily-question" component={QuestionPage} />
-      <ProtectedRoute path="/conversation/:id" component={ConversationPage} />
-      <Route component={NotFound} />
+      <Route path="/auth">
+        <AuthPage />
+      </Route>
+      <Route path="/">
+        {() => (
+          <ProtectedRoute path="/" component={HomePage} />
+        )}
+      </Route>
+      <Route path="/journal">
+        {() => (
+          <ProtectedRoute path="/journal" component={JournalPage} />
+        )}
+      </Route>
+      <Route path="/daily-question">
+        {() => (
+          <ProtectedRoute path="/daily-question" component={QuestionPage} />
+        )}
+      </Route>
+      <Route path="/conversation/:id">
+        {(params) => (
+          <ProtectedRoute path={`/conversation/${params.id}`} component={ConversationPage} />
+        )}
+      </Route>
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }
