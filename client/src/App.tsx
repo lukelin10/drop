@@ -7,12 +7,12 @@ import { AuthProvider } from './hooks/use-auth';
 import { ProtectedRoute } from './lib/protected-route';
 
 // Pages
-import HomePage from './pages/Home';
-import JournalPage from './pages/Journal';
+import HomePage from './pages/home-page';
+import JournalPage from './pages/journal-page';
 import AuthPage from './pages/auth-page';
-import QuestionPage from './pages/QuestionPage';
-import ConversationPage from './pages/ConversationPage';
-import NotFound from './pages/not-found';
+import QuestionPage from './pages/question-page';
+import ConversationPage from './pages/conversation-page';
+import NotFoundPage from './pages/not-found-page';
 
 // Define the parameter types for routes
 type RouteParams = {
@@ -102,7 +102,7 @@ function AppRouter() {
       <Route>
         {(params: RouteParams) => {
           console.log('[AppRouter] 404 route matched', params);
-          return <NotFound />;
+          return <NotFoundPage />;
         }}
       </Route>
     </Switch>
