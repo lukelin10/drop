@@ -1,10 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ErrorInfo } from 'react';
 import { useAuth } from '../hooks/use-auth';
 import { Redirect } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+
+// Error boundary for catching rendering errors
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null; errorInfo: ErrorInfo | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('AuthPage error caught:', error, errorInfo);
+    this.setState({ error, errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
+          <h1 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h1>
+          <p className="mb-4 text-muted-foreground">{this.state.error?.message || 'Unknown error'}</p>
+          <pre className="bg-card p-4 rounded max-w-full overflow-x-auto text-sm">
+            {this.state.error?.stack}
+          </pre>
+          <button
+            className="mt-6 px-4 py-2 bg-primary text-primary-foreground rounded"
+            onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Form schemas
 const loginSchema = z.object({
@@ -23,7 +65,7 @@ const registerSchema = loginSchema.extend({
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export default function AuthPage() {
+function AuthPageContent() {
   console.log('[AuthPage] Component rendering');
 
   useEffect(() => {
@@ -318,4 +360,30 @@ export default function AuthPage() {
       </div>
     </div>
   );
+}
+
+// Export the protected component with the error boundary
+export default function AuthPage() {
+  try {
+    return (
+      <ErrorBoundary>
+        <div className="bg-background">
+          <AuthPageContent />
+        </div>
+      </ErrorBoundary>
+    );
+  } catch (error) {
+    console.error('Error in AuthPage:', error);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h1>
+          <p className="mb-4 text-muted-foreground">Error loading the authentication page.</p>
+          <pre className="bg-card p-4 rounded max-w-full overflow-x-auto text-sm">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </pre>
+        </div>
+      </div>
+    );
+  }
 }
