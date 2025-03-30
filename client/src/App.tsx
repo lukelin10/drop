@@ -14,6 +14,34 @@ import QuestionPage from './pages/QuestionPage';
 import ConversationPage from './pages/ConversationPage';
 import NotFound from './pages/not-found';
 
+// Define the parameter types for routes
+type RouteParams = {
+  id?: string;
+  [key: string]: string | undefined;
+};
+
+// Define application routes in a centralized way
+const AppRoutes = {
+  HOME: '/',
+  AUTH: '/auth',
+  JOURNAL: '/journal',
+  DAILY_QUESTION: '/daily-question',
+  CONVERSATION: '/conversation/:id',
+}
+
+// Define which routes need authentication
+const ProtectedRoutes = [
+  { path: AppRoutes.HOME, Component: HomePage },
+  { path: AppRoutes.JOURNAL, Component: JournalPage },
+  { path: AppRoutes.DAILY_QUESTION, Component: QuestionPage },
+  { path: AppRoutes.CONVERSATION, Component: ConversationPage },
+];
+
+// Define public routes (no auth required)
+const PublicRoutes = [
+  { path: AppRoutes.AUTH, Component: AuthPage },
+];
+
 function App() {
   useEffect(() => {
     console.log('[App] Component mounted');
@@ -25,7 +53,7 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen bg-background font-sans antialiased">
           <main className="flex flex-col">
-            <Router />
+            <AppRouter />
           </main>
         </div>
         <Toaster />
@@ -34,50 +62,46 @@ function App() {
   );
 }
 
-function Router() {
+function AppRouter() {
   useEffect(() => {
-    console.log('[Router] Component mounted');
-    console.log('[Router] Current location:', window.location.pathname);
-    return () => console.log('[Router] Component unmounted');
+    console.log('[AppRouter] Component mounted');
+    console.log('[AppRouter] Current location:', window.location.pathname);
+    return () => console.log('[AppRouter] Component unmounted');
   }, []);
 
-  console.log('[Router] Rendering router component');
-  
   return (
     <Switch>
-      <Route path="/auth">
-        {() => {
-          console.log('[Router] /auth route matched');
-          return <AuthPage />;
-        }}
-      </Route>
-      <Route path="/">
-        {() => {
-          console.log('[Router] / route matched');
-          return <ProtectedRoute path="/" component={HomePage} />;
-        }}
-      </Route>
-      <Route path="/journal">
-        {() => {
-          console.log('[Router] /journal route matched');
-          return <ProtectedRoute path="/journal" component={JournalPage} />;
-        }}
-      </Route>
-      <Route path="/daily-question">
-        {() => {
-          console.log('[Router] /daily-question route matched');
-          return <ProtectedRoute path="/daily-question" component={QuestionPage} />;
-        }}
-      </Route>
-      <Route path="/conversation/:id">
-        {(params) => {
-          console.log('[Router] /conversation/:id route matched', params);
-          return <ProtectedRoute path={`/conversation/${params.id}`} component={ConversationPage} />;
-        }}
-      </Route>
+      {/* Public routes first */}
+      {PublicRoutes.map(({ path, Component }) => (
+        <Route key={path} path={path}>
+          {(params: RouteParams) => {
+            console.log(`[AppRouter] Route matched: ${path}`, params);
+            return <Component />;
+          }}
+        </Route>
+      ))}
+
+      {/* Protected routes */}
+      {ProtectedRoutes.map(({ path, Component }) => (
+        <Route key={path} path={path}>
+          {(params: RouteParams) => {
+            console.log(`[AppRouter] Protected route matched: ${path}`, params);
+            return (
+              <ProtectedRoute 
+                path={path.includes(':') 
+                  ? path.replace(':id', params.id || '') 
+                  : path} 
+                component={() => <Component />} 
+              />
+            );
+          }}
+        </Route>
+      ))}
+
+      {/* 404 route - must be last */}
       <Route>
-        {() => {
-          console.log('[Router] Not found route matched');
+        {(params: RouteParams) => {
+          console.log('[AppRouter] 404 route matched', params);
           return <NotFound />;
         }}
       </Route>
