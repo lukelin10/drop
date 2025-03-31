@@ -14,17 +14,31 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Function to sign in with Google
-export const signInWithGoogle = async (): Promise<void> => {
+// Function to sign in with Google using popup
+export const signInWithGoogle = async () => {
   try {
-    await signInWithRedirect(auth, googleProvider);
+    // Using popup instead of redirect for development environments
+    // This can work better when the domain isn't authorized in Firebase
+    const result = await signInWithPopup(auth, googleProvider);
+    
+    // User signed in
+    const user = result.user;
+    // Get the Google access token
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const token = credential?.accessToken;
+    
+    // Return user data for API call
+    return {
+      user,
+      token
+    };
   } catch (error) {
     console.error('Error signing in with Google:', error);
     throw error;
   }
 };
 
-// Function to handle redirect result
+// Function to handle redirect result (kept for compatibility)
 export const handleGoogleRedirect = async () => {
   try {
     const result = await getRedirectResult(auth);
