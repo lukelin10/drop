@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Route, Switch, useLocation, useRedirect } from 'wouter';
+import { Route, Switch, useLocation } from 'wouter';
 import { Toaster } from './components/ui/toaster';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
@@ -45,8 +45,7 @@ const PublicRoutes = [
 // Component that redirects based on auth status
 function AuthRedirect() {
   const { user, isLoading } = useAuth();
-  const [location] = useLocation();
-  const redirect = useRedirect();
+  const [location, setLocation] = useLocation();
   
   useEffect(() => {
     // Don't redirect if still loading auth state
@@ -56,16 +55,16 @@ function AuthRedirect() {
     // redirect to home page
     if (user && location === AppRoutes.AUTH) {
       console.log('[AuthRedirect] User is authenticated, redirecting to home');
-      redirect(AppRoutes.HOME);
+      setLocation(AppRoutes.HOME);
     }
     
     // If user is not logged in and trying to access root page,
     // redirect to auth page
     if (!user && location === AppRoutes.HOME) {
       console.log('[AuthRedirect] User is not authenticated, redirecting to auth');
-      redirect(AppRoutes.AUTH);
+      setLocation(AppRoutes.AUTH);
     }
-  }, [user, location, isLoading, redirect]);
+  }, [user, location, isLoading, setLocation]);
   
   return null;
 }
