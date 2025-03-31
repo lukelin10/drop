@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { Route, Switch } from 'wouter';
+import { Route, Switch, useLocation, useRedirect } from 'wouter';
 import { Toaster } from './components/ui/toaster';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
-import { AuthProvider } from './hooks/use-auth';
+import { AuthProvider, useAuth } from './hooks/use-auth';
 import { ProtectedRoute } from './lib/protected-route';
 
 // Pages
@@ -42,30 +42,46 @@ const PublicRoutes = [
   { path: AppRoutes.AUTH, Component: AuthPage },
 ];
 
-function App() {
+// Component that redirects based on auth status
+function AuthRedirect() {
+  const { user, isLoading } = useAuth();
+  const [location] = useLocation();
+  const redirect = useRedirect();
+  
   useEffect(() => {
-    console.log('[App] Component mounted');
-    console.log('[App] Window location:', window.location.href);
-    console.log('[App] Available routes:', {
-      HOME: AppRoutes.HOME,
-      AUTH: AppRoutes.AUTH,
-      JOURNAL: AppRoutes.JOURNAL,
-      DAILY_QUESTION: AppRoutes.DAILY_QUESTION,
-      CONVERSATION: AppRoutes.CONVERSATION,
-    });
-    return () => console.log('[App] Component unmounted');
-  }, []);
+    // Don't redirect if still loading auth state
+    if (isLoading) return;
+    
+    // If user is logged in and trying to access auth page, 
+    // redirect to home page
+    if (user && location === AppRoutes.AUTH) {
+      console.log('[AuthRedirect] User is authenticated, redirecting to home');
+      redirect(AppRoutes.HOME);
+    }
+    
+    // If user is not logged in and trying to access root page,
+    // redirect to auth page
+    if (!user && location === AppRoutes.HOME) {
+      console.log('[AuthRedirect] User is not authenticated, redirecting to auth');
+      redirect(AppRoutes.AUTH);
+    }
+  }, [user, location, isLoading, redirect]);
+  
+  return null;
+}
 
+function App() {
+  console.log('[App] Rendering main app component');
+  
   return (
-    <div className="min-h-screen bg-background font-sans antialiased">
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <h1 className="text-4xl font-bold text-blue-600 mb-4">Drop - Journal App</h1>
-        <p className="text-xl">Debug version - Checking rendering</p>
-        <div className="mt-8 p-4 bg-white rounded shadow">
-          <p>Current time: {new Date().toLocaleTimeString()}</p>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <div className="min-h-screen bg-background font-sans antialiased">
+          <AppRouter />
+          <Toaster />
         </div>
-      </div>
-    </div>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -77,42 +93,47 @@ function AppRouter() {
   }, []);
 
   return (
-    <Switch>
-      {/* Public routes first */}
-      {PublicRoutes.map(({ path, Component }) => (
-        <Route key={path} path={path}>
+    <>
+      {/* Component that handles automatic redirects based on auth state */}
+      <AuthRedirect />
+      
+      <Switch>
+        {/* Public routes first */}
+        {PublicRoutes.map(({ path, Component }) => (
+          <Route key={path} path={path}>
+            {(params: RouteParams) => {
+              console.log(`[AppRouter] Route matched: ${path}`, params);
+              return <Component />;
+            }}
+          </Route>
+        ))}
+
+        {/* Protected routes */}
+        {ProtectedRoutes.map(({ path, Component }) => (
+          <Route key={path} path={path}>
+            {(params: RouteParams) => {
+              console.log(`[AppRouter] Protected route matched: ${path}`, params);
+              return (
+                <ProtectedRoute 
+                  path={path.includes(':') 
+                    ? path.replace(':id', params.id || '') 
+                    : path} 
+                  component={(props: any) => <Component {...props} params={params} />} 
+                />
+              );
+            }}
+          </Route>
+        ))}
+
+        {/* 404 route - must be last */}
+        <Route>
           {(params: RouteParams) => {
-            console.log(`[AppRouter] Route matched: ${path}`, params);
-            return <Component />;
+            console.log('[AppRouter] 404 route matched', params);
+            return <NotFoundPage />;
           }}
         </Route>
-      ))}
-
-      {/* Protected routes */}
-      {ProtectedRoutes.map(({ path, Component }) => (
-        <Route key={path} path={path}>
-          {(params: RouteParams) => {
-            console.log(`[AppRouter] Protected route matched: ${path}`, params);
-            return (
-              <ProtectedRoute 
-                path={path.includes(':') 
-                  ? path.replace(':id', params.id || '') 
-                  : path} 
-                component={() => <Component />} 
-              />
-            );
-          }}
-        </Route>
-      ))}
-
-      {/* 404 route - must be last */}
-      <Route>
-        {(params: RouteParams) => {
-          console.log('[AppRouter] 404 route matched', params);
-          return <NotFoundPage />;
-        }}
-      </Route>
-    </Switch>
+      </Switch>
+    </>
   );
 }
 
