@@ -1,36 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import App from './App';
 
 // Immediately log startup for debugging
 console.log('[main] React initialization starting...');
 
 // Enhanced error handling
 try {
-  // Create a super simple App component directly in main.tsx for debugging
-  const SimpleApp = () => {
-    // Track that our component rendered
-    console.log('[SimpleApp] Component rendering');
-    
-    React.useEffect(() => {
-      console.log('[SimpleApp] Component mounted');
-    }, []);
-    
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-blue-600 mb-4">Drop - Journal App</h1>
-          <p className="text-gray-600 mb-6">Your daily reflection companion</p>
-          <div className="p-4 bg-blue-50 rounded-md border border-blue-100">
-            <p className="text-sm text-blue-800">
-              Minimal React App - {new Date().toLocaleTimeString()}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   // Find our root element
   console.log('[main] Finding root element...');
   const rootElement = document.getElementById('root');
@@ -44,7 +21,7 @@ try {
     console.log('[main] Rendering application...');
     root.render(
       <React.StrictMode>
-        <SimpleApp />
+        <App />
       </React.StrictMode>
     );
     console.log('[main] React application rendered successfully');
